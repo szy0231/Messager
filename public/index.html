@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Messager - Mutual Message Unlock</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Language Selection Modal -->
+  <div id="language-modal" class="language-modal">
+    <div class="language-modal-content">
+      <h2>Pick the language plz / 请选择语言</h2>
+      <div class="language-buttons">
+        <button id="lang-en" class="btn btn-primary lang-btn">English</button>
+        <button id="lang-zh" class="btn btn-primary lang-btn">中文</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="container hidden" id="main-container">
+    <header>
+      <h1>🔒 Messager - Shao Ziyue</h1>
+      <p class="subtitle">Personal Message Exchange System</p>
+    </header>
+
+    <!-- Identity Selection -->
+    <section id="identity-section" class="card">
+      <h2 id="identity-title">Who are you? / 你是谁？</h2>
+      <div class="identity-buttons">
+        <button id="identity-shao" class="btn btn-primary identity-btn">Shao Ziyue (我)</button>
+        <button id="identity-friend" class="btn btn-primary identity-btn">Friend / 朋友</button>
+      </div>
+      <div id="friend-name-input" class="hidden" style="margin-top: 20px;">
+        <label for="friend-name">Your Name / 你的名字:</label>
+        <input type="text" id="friend-name" placeholder="Enter your name" style="width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
+      </div>
+    </section>
+
+    <!-- Admin Panel (Shao Ziyue only) -->
+    <section id="admin-panel" class="card hidden">
+      <h2>📋 All Sessions / 所有会话</h2>
+      <button id="refresh-sessions-btn" class="btn btn-secondary">Refresh / 刷新</button>
+      <div id="sessions-list" style="margin-top: 20px;"></div>
+    </section>
+
+    <!-- Create Session Section (User A) -->
+    <section id="create-section" class="card hidden">
+      <h2 id="create-title">Create a New Session</h2>
+      <p id="create-desc">Click below to create a session and get your unique link to share.</p>
+      <button id="create-btn" class="btn btn-primary">Create Session</button>
+      <div id="session-result" class="hidden">
+        <div class="session-link-container">
+          <label>Your Session Link:</label>
+          <div class="link-display">
+            <input type="text" id="session-link" readonly>
+            <button id="copy-btn" class="btn btn-secondary">Copy</button>
+          </div>
+          <p class="info-text">Share this link with User B. Once both of you upload messages, they will be unlocked!</p>
+        </div>
+        <div class="upload-section">
+          <h3>Upload Your Message (User A)</h3>
+          <form id="user-a-form">
+            <div class="form-group">
+              <label for="user-a-message">Text Message (optional):</label>
+              <textarea id="user-a-message" placeholder="Enter your message here..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Record Audio/Video:</label>
+              <div class="recording-controls">
+                <div class="record-button-group">
+                  <button type="button" id="user-a-record-audio" class="btn btn-primary record-btn">
+                    🎤 Record Audio
+                  </button>
+                  <button type="button" id="user-a-record-video" class="btn btn-primary record-btn">
+                    🎥 Record Video
+                  </button>
+                </div>
+                <div id="user-a-recording-status" class="recording-status hidden">
+                  <span class="recording-timer" id="user-a-timer">00:00</span>
+                </div>
+                <div id="user-a-record-preview" class="record-preview hidden"></div>
+              </div>
+              <input type="hidden" id="user-a-recorded-blob">
+            </div>
+            <div class="or-divider">OR</div>
+            <div class="form-group">
+              <label for="user-a-file">Upload File (Text/Audio/Video - optional):</label>
+              <input type="file" id="user-a-file" accept="text/*,audio/*,video/*">
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Message</button>
+          </form>
+        </div>
+      </div>
+    </section>
+
+    <!-- Join Session Section (User B) -->
+    <section id="join-section" class="card hidden">
+      <h2 id="join-title">Join a Session</h2>
+      <p>Enter a session ID from the URL (e.g., /session/abc123)</p>
+      <div class="input-group">
+        <input type="text" id="session-id-input" placeholder="Enter session ID">
+        <button id="join-btn" class="btn btn-primary">Join Session</button>
+      </div>
+      <div id="join-result" class="hidden">
+        <div id="session-status"></div>
+        <div id="user-b-upload" class="hidden">
+          <h3 id="upload-title-b">Upload Your Message (User B)</h3>
+          <form id="user-b-form">
+            <div class="form-group">
+              <label for="user-b-message">Text Message (optional):</label>
+              <textarea id="user-b-message" placeholder="Enter your message here..."></textarea>
+            </div>
+            <div class="form-group">
+              <label>Record Audio/Video:</label>
+              <div class="recording-controls">
+                <div class="record-button-group">
+                  <button type="button" id="user-b-record-audio" class="btn btn-primary record-btn">
+                    🎤 Record Audio
+                  </button>
+                  <button type="button" id="user-b-record-video" class="btn btn-primary record-btn">
+                    🎥 Record Video
+                  </button>
+                </div>
+                <div id="user-b-recording-status" class="recording-status hidden">
+                  <span class="recording-timer" id="user-b-timer">00:00</span>
+                </div>
+                <div id="user-b-record-preview" class="record-preview hidden"></div>
+              </div>
+              <input type="hidden" id="user-b-recorded-blob">
+            </div>
+            <div class="or-divider">OR</div>
+            <div class="form-group">
+              <label for="user-b-file">Upload File (Text/Audio/Video - optional):</label>
+              <input type="file" id="user-b-file" accept="text/*,audio/*,video/*">
+            </div>
+            <button type="submit" class="btn btn-primary">Upload Message</button>
+          </form>
+        </div>
+        <div id="unlocked-messages" class="hidden">
+          <h3>✨ Unlocked Messages</h3>
+          <div id="message-display"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Messages Display -->
+    <section id="messages-section" class="card hidden">
+      <h2>Session Messages</h2>
+      <div id="messages-container"></div>
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

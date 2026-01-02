@@ -1,611 +1,379 @@
 // Language and Translations
-let currentLanguage = localStorage.getItem('messager-language') || null;
+// Set to true to always show language/name input (for testing)
+const FORCE_SHOW_INPUT = false;
 
-// User Identity
+// TEMPORARY: English only (Chinese removed for MVP, will restore later)
+let currentLanguage = 'en';
+
+// Current User
 let currentUser = {
-  isShao: false,
-  friendName: null
+  familyName: null,
+  givenName: null,
+  isShaoZiyue: false
 };
 
-// Load user identity from localStorage
-const savedIdentity = localStorage.getItem('messager-identity');
-if (savedIdentity) {
+// Load user from localStorage (always load saved user, even in dev mode)
+const savedUser = localStorage.getItem('messager-user');
+if (savedUser) {
   try {
-    currentUser = JSON.parse(savedIdentity);
+    currentUser = JSON.parse(savedUser);
+    console.log('[INIT] Loaded saved user:', currentUser);
   } catch (e) {
-    console.error('Error parsing saved identity:', e);
+    console.error('Error parsing saved user:', e);
   }
 }
 
 const translations = {
   en: {
-    title: '🔒 Messager',
-    subtitle: 'Mutual Message Unlock System',
-    createSession: 'Create a New Session',
-    createSessionDesc: 'Click below to create a session and get your unique link to share.',
-    createBtn: 'Create Session',
-    sessionLink: 'Your Session Link:',
-    copyBtn: 'Copy',
-    shareLink: 'Share this link with User B. Once both of you upload messages, they will be unlocked!',
-    uploadMessageA: 'Upload Your Message (User A)',
-    uploadMessageB: 'Upload Your Message (User B)',
-    textMessage: 'Text Message (optional):',
-    textPlaceholder: 'Enter your message here...',
-    recordAudioVideo: 'Record Audio/Video:',
-    recordAudio: '🎤 Record Audio',
-    recordVideo: '🎥 Record Video',
-    stopRecording: '⏹ Stop Recording',
-    or: 'OR',
-    uploadFile: 'Upload File (Text/Audio/Video - optional):',
-    uploadBtn: 'Upload Message',
-    joinSession: 'Join a Session',
-    joinDesc: 'Enter a session ID from the URL (e.g., /session/abc123)',
-    sessionIdPlaceholder: 'Enter session ID',
-    joinBtn: 'Join Session',
-    unlockedMessages: '✨ Unlocked Messages',
-    userAMessage: '👤 User A\'s Message',
-    userBMessage: '👤 User B\'s Message',
-    status: 'Status:',
-    uploaded: '✓ Uploaded',
+    title: '🔒 Messager - Shao Ziyue',
+    subtitle: 'Personal Message Exchange System',
+    nameTitle: 'Enter Your Name',
+    familyName: 'Family Name:',
+    givenName: 'Given Name:',
+    continue: 'Continue',
+    adminTitle: '📋 All Friends',
+    refresh: 'Refresh',
+    friendSessionTitle: 'Join or Create Session',
+    joinTitle: 'Join Session',
+    friendSessionDesc: 'Enter your session ID:',
+    createNewTitle: 'Create New Session',
+    createNewDesc: 'Create a new session to message Shao Ziyue',
+    join: 'Join',
+    messagesTitle: 'Messages',
+    inputTitle: 'Leave a Message',
+    messageLabel: 'Message (optional):',
+    fileLabel: 'Upload File (optional):',
+    send: 'Send',
+    waitingForReply: 'Waiting for reply...',
+    noSessions: 'No sessions yet.',
+    sessionWith: 'Session with',
+    unlocked: '✨ Unlocked',
     waiting: '⏳ Waiting',
-    uploadToUnlock: 'Upload your message below to unlock!',
-    waitingForA: 'Waiting for User A...',
-    unlocked: '✨ Messages are unlocked! Scroll down to view.',
+    view: 'View',
+    messageSent: 'Message sent successfully!',
+    waitingForOther: 'Waiting for the other person to reply...',
+    unlockedNow: '✨ Messages are now unlocked!',
+    pleaseEnterName: 'Please enter both family name and given name',
+    pleaseEnterMessage: 'Please enter a message or upload a file',
+    sessionNotFound: 'Session not found',
+    nameNotMatch: 'Name does not match this session',
     downloadFile: 'Download file:',
-    pleaseEnterMessage: 'Please enter a message, record audio/video, or upload a file',
-    messageUploaded: 'Message uploaded successfully!',
-    waitingForB: 'Waiting for User B...',
-    nowUnlocked: 'Messages are now unlocked!'
+    currentUser: 'Current User / 当前用户:',
+    changeName: 'Change Name / 更改姓名',
+    createSessionTitle: 'Create Session with Friend',
+    friendFamilyName: 'Friend Family Name:',
+    friendGivenName: 'Friend Given Name:',
+    create: 'Create'
   },
   zh: {
-    title: '🔒 消息解锁',
-    subtitle: '双向消息解锁系统',
-    createSession: '创建新会话',
-    createSessionDesc: '点击下方创建会话并获取您的唯一链接来分享。',
-    createBtn: '创建会话',
-    sessionLink: '您的会话链接：',
-    copyBtn: '复制',
-    shareLink: '将此链接分享给用户B。当你们双方都上传消息后，消息将被解锁！',
-    uploadMessageA: '上传您的消息（用户A）',
-    uploadMessageB: '上传您的消息（用户B）',
-    textMessage: '文字消息（可选）：',
-    textPlaceholder: '在这里输入您的消息...',
-    recordAudioVideo: '录制音频/视频：',
-    recordAudio: '🎤 录制音频',
-    recordVideo: '🎥 录制视频',
-    stopRecording: '⏹ 停止录制',
-    or: '或',
-    uploadFile: '上传文件（文字/音频/视频 - 可选）：',
-    uploadBtn: '上传消息',
-    joinSession: '加入会话',
-    joinDesc: '从URL输入会话ID（例如：/session/abc123）',
-    sessionIdPlaceholder: '输入会话ID',
-    joinBtn: '加入会话',
-    unlockedMessages: '✨ 已解锁的消息',
-    userAMessage: '👤 用户A的消息',
-    userBMessage: '👤 用户B的消息',
-    status: '状态：',
-    uploaded: '✓ 已上传',
+    title: '🔒 消息解锁 - 邵子越',
+    subtitle: '个人消息交换系统',
+    nameTitle: '输入您的姓名',
+    familyName: '姓:',
+    givenName: '名:',
+    continue: '继续',
+    adminTitle: '📋 所有朋友',
+    refresh: '刷新',
+    friendSessionTitle: '加入或创建会话',
+    joinTitle: '加入会话',
+    friendSessionDesc: '输入您的会话ID:',
+    createNewTitle: '创建新会话',
+    createNewDesc: '创建新会话以向邵子越发消息',
+    join: '加入',
+    messagesTitle: '消息',
+    inputTitle: '您的消息',
+    messageLabel: '消息（可选）:',
+    fileLabel: '上传文件（可选）:',
+    send: '发送',
+    waitingForReply: '等待回复...',
+    noSessions: '还没有会话。',
+    sessionWith: '与会话',
+    unlocked: '✨ 已解锁',
     waiting: '⏳ 等待中',
-    uploadToUnlock: '在下方上传您的消息以解锁！',
-    waitingForA: '等待用户A...',
-    unlocked: '✨ 消息已解锁！向下滚动查看。',
-    downloadFile: '下载文件：',
-    pleaseEnterMessage: '请输入消息、录制音频/视频或上传文件',
-    messageUploaded: '消息上传成功！',
-    waitingForB: '等待用户B...',
-    nowUnlocked: '消息现已解锁！'
+    view: '查看',
+    messageSent: '消息发送成功！',
+    waitingForOther: '等待对方回复...',
+    unlockedNow: '✨ 消息现已解锁！',
+    pleaseEnterName: '请输入姓和名',
+    pleaseEnterMessage: '请输入消息或上传文件',
+    sessionNotFound: '会话未找到',
+    nameNotMatch: '姓名不匹配此会话',
+    downloadFile: '下载文件:',
+    currentUser: '当前用户:',
+    changeName: '更改姓名',
+    createSessionTitle: '与朋友创建会话',
+    friendFamilyName: '朋友的姓:',
+    friendGivenName: '朋友的名:',
+    create: '创建'
   }
 };
+
+// Helper function to check if name is Shao Ziyue
+function isShaoZiyueName(familyName, givenName) {
+  const family = (familyName || '').toLowerCase().trim();
+  const given = (givenName || '').toLowerCase().trim();
+  const fullName = `${family} ${given}`.trim();
+  
+  return fullName === 'shao ziyue' || 
+         fullName === '邵 子越' ||
+         (family === 'shao' && given === 'ziyue') ||
+         (family === '邵' && given === '子越');
+}
 
 // Apply translations
 function applyTranslations() {
-  // Ensure we have a valid language
   if (!currentLanguage || !translations[currentLanguage]) {
-    currentLanguage = 'en'; // Fallback to English
+    currentLanguage = 'en';
   }
   const t = translations[currentLanguage];
   
-  // Error checking for critical elements
-  const headerH1 = document.querySelector('header h1');
-  if (!headerH1) {
-    console.error('Header h1 not found!');
-    return;
-  }
-  
-  headerH1.textContent = t.title;
-  document.querySelector('header .subtitle').textContent = t.subtitle;
-  document.querySelector('#create-section h2').textContent = t.createSession;
-  document.querySelector('#create-section p').textContent = t.createSessionDesc;
-  document.getElementById('create-btn').textContent = t.createBtn;
-  document.querySelector('#session-result label').textContent = t.sessionLink;
-  document.getElementById('copy-btn').textContent = t.copyBtn;
-  document.querySelector('.info-text').textContent = t.shareLink;
-  document.querySelectorAll('.upload-section h3')[0].textContent = t.uploadMessageA;
-  document.querySelectorAll('label[for*="message"]')[0].textContent = t.textMessage;
-  document.querySelectorAll('textarea')[0].placeholder = t.textPlaceholder;
-  document.querySelectorAll('.form-group label')[2].textContent = t.recordAudioVideo;
-  document.getElementById('user-a-record-audio').textContent = t.recordAudio;
-  document.getElementById('user-a-record-video').textContent = t.recordVideo;
-  document.querySelectorAll('.or-divider')[0].textContent = t.or;
-  document.querySelectorAll('label[for*="file"]')[0].textContent = t.uploadFile;
-  document.querySelectorAll('button[type="submit"]')[0].textContent = t.uploadBtn;
-  document.querySelector('#join-section h2').textContent = t.joinSession;
-  document.querySelector('#join-section p').textContent = t.joinDesc;
-  document.getElementById('session-id-input').placeholder = t.sessionIdPlaceholder;
-  document.getElementById('join-btn').textContent = t.joinBtn;
-  if (document.querySelectorAll('.upload-section h3')[1]) {
-    document.querySelectorAll('.upload-section h3')[1].textContent = t.uploadMessageB;
-  }
-  if (document.querySelectorAll('label[for*="message"]')[1]) {
-    document.querySelectorAll('label[for*="message"]')[1].textContent = t.textMessage;
-  }
-  if (document.querySelectorAll('textarea')[1]) {
-    document.querySelectorAll('textarea')[1].placeholder = t.textPlaceholder;
-  }
-  if (document.getElementById('user-b-record-audio')) {
-    document.getElementById('user-b-record-audio').textContent = t.recordAudio;
-    document.getElementById('user-b-record-video').textContent = t.recordVideo;
-  }
-  if (document.querySelectorAll('.or-divider')[1]) {
-    document.querySelectorAll('.or-divider')[1].textContent = t.or;
-  }
-  if (document.querySelectorAll('label[for*="file"]')[1]) {
-    document.querySelectorAll('label[for*="file"]')[1].textContent = t.uploadFile;
-  }
-  if (document.querySelectorAll('button[type="submit"]')[1]) {
-    document.querySelectorAll('button[type="submit"]')[1].textContent = t.uploadBtn;
-  }
-  if (document.getElementById('unlocked-messages-title')) {
-    document.getElementById('unlocked-messages-title').textContent = t.unlockedMessages;
-  }
-}
-
-// Language selection
-function initLanguageSelection() {
-  const modal = document.getElementById('language-modal');
-  const mainContainer = document.getElementById('main-container');
-  const langEnBtn = document.getElementById('lang-en');
-  const langZhBtn = document.getElementById('lang-zh');
-  
-  // Error checking - ensure all required elements exist
-  if (!modal || !mainContainer || !langEnBtn || !langZhBtn) {
-    console.error('Language selection elements not found!');
-    // Fallback: use English and show main content
-    currentLanguage = 'en';
-    if (mainContainer) mainContainer.classList.remove('hidden');
-    if (modal) modal.classList.add('hidden');
-    if (currentLanguage) applyTranslations();
-    return;
-  }
-  
-  // If language already selected, hide modal
-  if (currentLanguage && currentLanguage !== '' && currentLanguage !== null) {
-    console.log('Language already selected:', currentLanguage);
-    modal.classList.add('hidden');
-    mainContainer.classList.remove('hidden');
-    applyTranslations();
-    // Setup buttons immediately - event delegation works regardless of button visibility
-    setupRecordingButtons();
-    return;
-  }
-  
-  // Ensure modal is visible when no language selected
-  console.log('No language selected, showing modal');
-  modal.classList.remove('hidden');
-  mainContainer.classList.add('hidden');
-  
-  // Show modal and wait for selection
-  // Create a handler function to avoid duplicate listeners
-  const handleLanguageSelect = (lang) => {
-    console.log('Language selected:', lang); // Debug log
-    currentLanguage = lang;
-    localStorage.setItem('messager-language', lang);
-    
-    // Hide modal and show main container
-    if (modal) {
-      modal.classList.add('hidden');
-      console.log('Modal hidden class added'); // Debug log
-    }
-    if (mainContainer) {
-      mainContainer.classList.remove('hidden');
-      console.log('Main container shown'); // Debug log
-    }
-    
-    applyTranslations();
-    setupRecordingButtons(); // Setup recording buttons after language is selected
+  const elements = {
+    'name-title': t.nameTitle,
+    'submit-name-btn': t.continue,
+    'admin-title': t.adminTitle,
+    'friend-session-title': t.friendSessionTitle,
+    'join-title': t.joinTitle,
+    'create-new-title': t.createNewTitle,
+    'input-title': t.inputTitle,
+    'file-label': t.fileLabel,
+    'submit-message-btn': t.send
   };
   
-  // Remove any existing listeners by cloning the buttons
-  const newLangEnBtn = langEnBtn.cloneNode(true);
-  const newLangZhBtn = langZhBtn.cloneNode(true);
-  langEnBtn.parentNode.replaceChild(newLangEnBtn, langEnBtn);
-  langZhBtn.parentNode.replaceChild(newLangZhBtn, langZhBtn);
-  
-  // Add fresh event listeners
-  newLangEnBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    handleLanguageSelect('en');
+  Object.entries(elements).forEach(([id, text]) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = text;
   });
   
-  newLangZhBtn.addEventListener('click', (e) => {
-    e.preventDefault();
-    handleLanguageSelect('zh');
-  });
+  // Additional translations
+  const createSessionTitle = document.getElementById('create-session-title');
+  const createBtn = document.getElementById('create-session-btn');
+  
+  if (createSessionTitle) createSessionTitle.textContent = t.createSessionTitle;
+  if (createBtn) createBtn.textContent = t.create;
+  
+  // Friend section translations
+  const joinTitleEl = document.getElementById('join-title');
+  const createNewTitleEl = document.getElementById('create-new-title');
+  const createNewBtn = document.getElementById('create-new-session-btn');
+  
+  if (joinTitleEl) joinTitleEl.textContent = t.joinTitle;
+  if (createNewTitleEl) createNewTitleEl.textContent = t.createNewTitle;
+  if (createNewBtn) createNewBtn.textContent = t.create + ' Session / 会话';
+  
+  // Change name button translation
+  const changeNameBtn = document.getElementById('change-name-btn');
+  if (changeNameBtn) changeNameBtn.textContent = t.changeName;
+  
+  // Update placeholders
+  const familyNameInput = document.getElementById('family-name');
+  const givenNameInput = document.getElementById('given-name');
+  if (familyNameInput) familyNameInput.placeholder = currentLanguage === 'zh' ? '姓' : 'Family Name';
+  if (givenNameInput) givenNameInput.placeholder = currentLanguage === 'zh' ? '名' : 'Given Name';
+  
+  const sessionInput = document.getElementById('session-id-input');
+  if (sessionInput) sessionInput.placeholder = currentLanguage === 'zh' ? '会话ID' : 'Session ID';
+  
+  const messageTextarea = document.getElementById('message-text');
+  if (messageTextarea) {
+    messageTextarea.placeholder = currentLanguage === 'zh' 
+      ? '在这里输入您的消息...' 
+      : 'Enter your message here...';
+  }
 }
 
-// Recording functionality
-let recordingState = {
-  A: { recorder: null, stream: null, blob: null, timer: null, startTime: null },
-  B: { recorder: null, stream: null, blob: null, timer: null, startTime: null }
-};
-
-// Initialize recording for a user (A or B)
-function initRecording(user, type) {
-  console.log('initRecording called:', user, type); // Debug
-  const isAudio = type === 'audio';
-  const prefix = `user-${user}`;
-  let recordAudioBtn = document.getElementById(`${prefix}-record-audio`);
-  let recordVideoBtn = document.getElementById(`${prefix}-record-video`);
-  let statusDiv = document.getElementById(`${prefix}-recording-status`);
-  let previewDiv = document.getElementById(`${prefix}-record-preview`);
-  let timerSpan = document.getElementById(`${prefix}-timer`);
+// Language selection - TEMPORARILY DISABLED (English only for MVP)
+// TODO: Restore dual language support later
+function initLanguageSelection() {
+  console.log('[INIT] Language selection skipped - English only mode');
+  currentLanguage = 'en';
   
-  // Error checking - only check critical elements
-  if (!recordAudioBtn || !recordVideoBtn) {
-    console.error('Recording buttons not found for user', user);
-    const t = translations[currentLanguage] || translations.en;
-    alert('Recording buttons not found. Please make sure you have created a session first.');
+  const modal = document.getElementById('language-modal');
+  const mainContainer = document.getElementById('main-container');
+  
+  // Hide language modal, show main content
+  if (modal) modal.classList.add('hidden');
+  if (mainContainer) mainContainer.classList.remove('hidden');
+  
+  applyTranslations();
+  initNameSection();
+}
+
+// Initialize name section
+function initNameSection() {
+  console.log('[INIT] initNameSection called');
+  console.log('[INIT] currentUser:', currentUser);
+  
+  // CHECK USER FIRST - if they already have a name, skip to main interface
+  if (currentUser.familyName && currentUser.givenName) {
+    console.log('[INIT] ✓ User already has name, skipping to main interface');
+    currentUser.isShaoZiyue = isShaoZiyueName(currentUser.familyName, currentUser.givenName);
+    showMainInterface();
+    return;  // EXIT EARLY - don't show name input!
+  }
+  
+  // Only reach here if no saved user - now check elements and show name step
+  const nameStep = document.getElementById('name-step');
+  const nameForm = document.getElementById('name-form');
+  
+  console.log('[INIT] Name step elements:', {
+    nameStep: !!nameStep,
+    nameForm: !!nameForm
+  });
+  
+  if (!nameStep || !nameForm) {
+    console.error('[INIT] ❌ Name step elements not found!');
     return;
   }
   
-  // Optional elements - create if missing
-  if (!statusDiv) {
-    console.warn('Status div not found, creating...');
-    const controlsDiv = recordAudioBtn.closest('.recording-controls');
-    if (controlsDiv) {
-      statusDiv = document.createElement('div');
-      statusDiv.id = `${prefix}-recording-status`;
-      statusDiv.className = 'recording-status hidden';
-      controlsDiv.appendChild(statusDiv);
+  // Show name step
+  console.log('[INIT] Showing name input step');
+  showStep('name-step');
+  
+  // Remove existing listener by cloning the form
+  const newForm = nameForm.cloneNode(true);
+  nameForm.parentNode.replaceChild(newForm, nameForm);
+  const newNameForm = document.getElementById('name-form');
+  
+  console.log('[INIT] Name form listener attached');
+  
+  newNameForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    const familyName = document.getElementById('family-name').value.trim();
+    const givenName = document.getElementById('given-name').value.trim();
+    
+    if (!familyName || !givenName) {
+      const t = translations[currentLanguage];
+      alert(t.pleaseEnterName);
+      return;
     }
+    
+    currentUser.familyName = familyName;
+    currentUser.givenName = givenName;
+    currentUser.isShaoZiyue = isShaoZiyueName(familyName, givenName);
+    
+    localStorage.setItem('messager-user', JSON.stringify(currentUser));
+    
+    showMainInterface();
+  });
+}
+
+// Show main interface based on user type
+function showMainInterface() {
+  // Show change name link
+  const changeNameBtn = document.getElementById('change-name-btn');
+  if (changeNameBtn && currentUser.familyName && currentUser.givenName) {
+    changeNameBtn.classList.remove('hidden');
   }
-  if (!previewDiv) {
-    console.warn('Preview div not found, creating...');
-    const controlsDiv = recordAudioBtn.closest('.recording-controls');
-    if (controlsDiv) {
-      previewDiv = document.createElement('div');
-      previewDiv.id = `${prefix}-record-preview`;
-      previewDiv.className = 'record-preview hidden';
-      controlsDiv.appendChild(previewDiv);
-    }
-  }
-  if (!timerSpan) {
-    console.warn('Timer span not found, creating...');
-    if (statusDiv) {
-      timerSpan = document.createElement('span');
-      timerSpan.id = `${prefix}-timer`;
-      timerSpan.className = 'recording-timer';
-      timerSpan.textContent = '00:00';
-      statusDiv.appendChild(timerSpan);
+  
+  // Hide all steps first
+  hideAllSteps();
+  
+  // In dev mode (FORCE_SHOW_INPUT), ignore URL and always go to main panel
+  if (FORCE_SHOW_INPUT) {
+    console.log('[DEV] FORCE_SHOW_INPUT enabled - ignoring URL state');
+    if (currentUser.isShaoZiyue) {
+      showStep('admin-panel');
+      loadAllSessions();
     } else {
-      timerSpan = document.getElementById(`${prefix}-timer`);
+      showStep('friend-session-step');
     }
-  }
-  
-  // Final safety check - make sure we have at least the buttons
-  if (!statusDiv || !previewDiv || !timerSpan) {
-    console.warn('Some recording UI elements missing, but continuing with buttons only...');
-  }
-  
-  // Disable buttons
-  recordAudioBtn.disabled = true;
-  recordVideoBtn.disabled = true;
-  
-  const constraints = isAudio 
-    ? { audio: true }
-    : { audio: true, video: { facingMode: 'user' } };
-  
-  console.log('Requesting media access...'); // Debug
-  navigator.mediaDevices.getUserMedia(constraints)
-    .then(stream => {
-      console.log('Media access granted'); // Debug
-      recordingState[user].stream = stream;
-      
-      // Create preview
-      if (!isAudio) {
-        const video = document.createElement('video');
-        video.srcObject = stream;
-        video.autoplay = true;
-        video.playsInline = true;
-        video.muted = true;
-        previewDiv.innerHTML = '';
-        previewDiv.appendChild(video);
-        previewDiv.classList.remove('hidden');
-      }
-      
-      // Get MIME type (iOS Safari support)
-      let mimeType = isAudio ? 'audio/webm' : 'video/webm';
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = isAudio ? 'audio/mp4' : 'video/mp4';
-      }
-      if (!MediaRecorder.isTypeSupported(mimeType)) {
-        mimeType = ''; // Let browser decide
-      }
-      
-      const options = mimeType ? { mimeType } : {};
-      const recorder = new MediaRecorder(stream, options);
-      recordingState[user].recorder = recorder;
-      
-      const chunks = [];
-      recorder.ondataavailable = (e) => {
-        if (e.data.size > 0) {
-          chunks.push(e.data);
-        }
-      };
-      
-      recorder.onstop = () => {
-        const blob = new Blob(chunks, { type: recorder.mimeType || (isAudio ? 'audio/webm' : 'video/webm') });
-        recordingState[user].blob = blob;
-        
-        // Create preview of recorded media
-        previewDiv.innerHTML = '';
-        const url = URL.createObjectURL(blob);
-        if (isAudio) {
-          const audio = document.createElement('audio');
-          audio.controls = true;
-          audio.src = url;
-          previewDiv.appendChild(audio);
-        } else {
-          const video = document.createElement('video');
-          video.controls = true;
-          video.src = url;
-          previewDiv.appendChild(video);
-        }
-        previewDiv.classList.remove('hidden');
-        
-        // Store blob reference
-        document.getElementById(`${prefix}-recorded-blob`).dataset.blobUrl = url;
-        document.getElementById(`${prefix}-recorded-blob`).dataset.mimeType = blob.type;
-        
-        // Re-enable buttons
-        recordAudioBtn.disabled = false;
-        recordVideoBtn.disabled = false;
-        
-        // Update button text
-        const t = translations[currentLanguage] || translations.en;
-        if (isAudio) {
-          recordAudioBtn.textContent = t.recordAudio;
-        } else {
-          recordVideoBtn.textContent = t.recordVideo;
-        }
-      };
-      
-      // Start recording
-      recorder.start();
-      recordingState[user].startTime = Date.now();
-      statusDiv.classList.remove('hidden');
-      
-      // Update button
-      const t = translations[currentLanguage] || translations.en;
-      if (isAudio) {
-        recordAudioBtn.textContent = t.stopRecording;
-        recordAudioBtn.classList.add('recording');
-      } else {
-        recordVideoBtn.textContent = t.stopRecording;
-        recordVideoBtn.classList.add('recording');
-      }
-      
-      // Start timer
-      recordingState[user].timer = setInterval(() => {
-        const elapsed = Math.floor((Date.now() - recordingState[user].startTime) / 1000);
-        const minutes = Math.floor(elapsed / 60);
-        const seconds = elapsed % 60;
-        timerSpan.textContent = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
-      }, 1000);
-    })
-    .catch(err => {
-      console.error('Error accessing media:', err);
-      const t = translations[currentLanguage] || translations.en;
-      const errorMsg = currentLanguage === 'zh' 
-        ? '无法访问麦克风/摄像头：' + err.message 
-        : 'Error accessing microphone/camera: ' + err.message;
-      alert(errorMsg);
-      if (recordAudioBtn) recordAudioBtn.disabled = false;
-      if (recordVideoBtn) recordVideoBtn.disabled = false;
-    });
-}
-
-// Stop recording for a user
-function stopRecording(user) {
-  const prefix = `user-${user}`;
-  const state = recordingState[user];
-  
-  if (state.recorder && state.recorder.state !== 'inactive') {
-    state.recorder.stop();
-  }
-  
-  if (state.stream) {
-    state.stream.getTracks().forEach(track => track.stop());
-    state.stream = null;
-    
-    // Clear live preview video
-    const previewDiv = document.getElementById(`${prefix}-record-preview`);
-    if (previewDiv) {
-      const video = previewDiv.querySelector('video');
-      if (video && video.srcObject) {
-        video.srcObject = null;
-      }
-    }
-  }
-  
-  if (state.timer) {
-    clearInterval(state.timer);
-    state.timer = null;
-  }
-  
-  const statusDiv = document.getElementById(`${prefix}-recording-status`);
-  if (statusDiv) {
-    statusDiv.classList.add('hidden');
-  }
-  
-  const recordAudioBtn = document.getElementById(`${prefix}-record-audio`);
-  const recordVideoBtn = document.getElementById(`${prefix}-record-video`);
-  if (recordAudioBtn) recordAudioBtn.classList.remove('recording');
-  if (recordVideoBtn) recordVideoBtn.classList.remove('recording');
-}
-
-// Use event delegation for recording buttons (works even if buttons are added dynamically)
-let recordingButtonsSetup = false;
-
-function setupRecordingButtons() {
-  if (recordingButtonsSetup) {
-    console.log('Recording buttons already set up via delegation');
     return;
   }
   
-  console.log('Setting up recording buttons with event delegation'); // Debug
+  // Check if URL has session ID first
+  const path = window.location.pathname;
+  const sessionMatch = path.match(/\/session\/([a-f0-9-]+)/i);
   
-  // Use event delegation on document body - this works for dynamically added buttons
-  document.body.addEventListener('click', (e) => {
-    // Check if clicked element is a recording button
-    const target = e.target;
-    if (!target || !target.id) return;
-    
-    // User A buttons
-    if (target.id === 'user-a-record-audio') {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('User A audio button clicked'); // Debug
-      if (target.classList.contains('recording')) {
-        stopRecording('A');
-      } else {
-        stopRecording('A');
-        initRecording('A', 'audio');
-      }
-      return;
-    }
-    
-    if (target.id === 'user-a-record-video') {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('User A video button clicked'); // Debug
-      if (target.classList.contains('recording')) {
-        stopRecording('A');
-      } else {
-        stopRecording('A');
-        initRecording('A', 'video');
-      }
-      return;
-    }
-    
-    // User B buttons
-    if (target.id === 'user-b-record-audio') {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('User B audio button clicked'); // Debug
-      if (target.classList.contains('recording')) {
-        stopRecording('B');
-      } else {
-        stopRecording('B');
-        initRecording('B', 'audio');
-      }
-      return;
-    }
-    
-    if (target.id === 'user-b-record-video') {
-      e.preventDefault();
-      e.stopPropagation();
-      console.log('User B video button clicked'); // Debug
-      if (target.classList.contains('recording')) {
-        stopRecording('B');
-      } else {
-        stopRecording('B');
-        initRecording('B', 'video');
-      }
-      return;
-    }
-  });
-  
-  recordingButtonsSetup = true;
-  console.log('Recording button event delegation set up');
-}
-
-// Identity Selection
-function initIdentitySelection() {
-  const identityShao = document.getElementById('identity-shao');
-  const identityFriend = document.getElementById('identity-friend');
-  const friendNameInput = document.getElementById('friend-name-input');
-  const friendNameField = document.getElementById('friend-name');
-  const adminPanel = document.getElementById('admin-panel');
-  const createSection = document.getElementById('create-section');
-  const joinSection = document.getElementById('join-section');
-  
-  if (!identityShao || !identityFriend) return;
-  
-  // If identity already selected, show appropriate UI
-  if (currentUser.isShao !== undefined && currentUser.isShao !== null) {
-    showUserInterface();
-    return;
-  }
-  
-  identityShao.addEventListener('click', () => {
-    currentUser.isShao = true;
-    currentUser.friendName = null;
-    localStorage.setItem('messager-identity', JSON.stringify(currentUser));
-    showUserInterface();
-  });
-  
-  identityFriend.addEventListener('click', () => {
-    friendNameInput.classList.remove('hidden');
-    identityFriend.disabled = true;
-    
-    friendNameField.addEventListener('blur', () => {
-      if (friendNameField.value.trim()) {
-        currentUser.isShao = false;
-        currentUser.friendName = friendNameField.value.trim();
-        localStorage.setItem('messager-identity', JSON.stringify(currentUser));
-        showUserInterface();
-      }
-    });
-    
-    friendNameField.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter' && friendNameField.value.trim()) {
-        currentUser.isShao = false;
-        currentUser.friendName = friendNameField.value.trim();
-        localStorage.setItem('messager-identity', JSON.stringify(currentUser));
-        showUserInterface();
-      }
-    });
-  });
-}
-
-function showUserInterface() {
-  const identitySection = document.getElementById('identity-section');
-  const adminPanel = document.getElementById('admin-panel');
-  const createSection = document.getElementById('create-section');
-  const joinSection = document.getElementById('join-section');
-  
-  if (identitySection) identitySection.classList.add('hidden');
-  
-  if (currentUser.isShao) {
-    // Shao Ziyue view - show admin panel and create section
-    if (adminPanel) adminPanel.classList.remove('hidden');
-    if (createSection) createSection.classList.remove('hidden');
-    if (joinSection) joinSection.classList.add('hidden');
-    loadAllSessions(); // Load all sessions for admin view
+  if (sessionMatch) {
+    // User is viewing a session
+    const sessionId = sessionMatch[1];
+    loadSession(sessionId);
+  } else if (currentUser.isShaoZiyue) {
+    // Admin view (no session in URL)
+    showStep('admin-panel');
+    loadAllSessions();
   } else {
-    // Friend view - show join section only
-    if (adminPanel) adminPanel.classList.add('hidden');
-    if (createSection) createSection.classList.remove('hidden'); // Friends can also create sessions
-    if (joinSection) joinSection.classList.remove('hidden');
+    // Friend view (no session in URL)
+    showStep('friend-session-step');
   }
 }
 
-// Load all sessions for admin view
-async function loadAllSessions() {
-  if (!currentUser.isShao) return;
+// Utility functions for step navigation
+function hideAllSteps() {
+  const steps = ['name-step', 'admin-panel', 'friend-session-step', 'message-input-step', 'loading-step', 'status-step'];
+  steps.forEach(stepId => {
+    const step = document.getElementById(stepId);
+    if (step) step.classList.add('hidden');
+  });
+}
+
+function showStep(stepId) {
+  console.log('[UI] showStep called:', stepId);
+  hideAllSteps();
+  const step = document.getElementById(stepId);
+  if (step) {
+    step.classList.remove('hidden');
+    console.log('[UI] ✓ Step shown:', stepId, 'Element exists:', !!step);
+    // Scroll to top
+    window.scrollTo(0, 0);
+  } else {
+    console.error('[UI] ❌ Step not found:', stepId);
+  }
+}
+
+// Change name function
+function changeName() {
+  // Clear localStorage
+  localStorage.removeItem('messager-user');
+  currentUser = {
+    familyName: null,
+    givenName: null,
+    isShaoZiyue: false
+  };
   
+  // Clear input fields
+  document.getElementById('family-name').value = '';
+  document.getElementById('given-name').value = '';
+  
+  // Show name step
+  showStep('name-step');
+}
+
+// Logout function - clears everything and reloads
+function logout() {
+  console.log('[LOGOUT] Clearing all data and reloading...');
+  localStorage.clear();
+  location.reload();
+}
+
+// Go back to panel function - returns to admin or friend panel
+function goBackToPanel() {
+  console.log('[NAV] Going back to panel...');
+  console.log('[NAV] Current user:', currentUser);
+  
+  // Stop any polling
+  if (window.statusPolling) {
+    clearInterval(window.statusPolling);
+    window.statusPolling = null;
+  }
+  
+  // Clear URL and reset to root
+  window.history.pushState({}, '', '/');
+  
+  // Show appropriate panel based on user identity
+  if (currentUser.isShaoZiyue) {
+    console.log('[NAV] ✓ Returning to Admin Panel');
+    showStep('admin-panel');
+    loadSessions(); // Refresh sessions list
+  } else {
+    console.log('[NAV] ✓ Returning to Friend Panel');
+    showStep('friend-session-step');
+  }
+}
+
+// Load all sessions for admin
+async function loadAllSessions() {
   try {
     const response = await fetch('/api/admin/sessions');
     const sessions = await response.json();
@@ -613,25 +381,26 @@ async function loadAllSessions() {
     const sessionsList = document.getElementById('sessions-list');
     if (!sessionsList) return;
     
+    const t = translations[currentLanguage];
+    
     if (sessions.length === 0) {
-      sessionsList.innerHTML = '<p>No sessions yet.</p>';
+      sessionsList.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 32px;">${t.noSessions}</p>`;
       return;
     }
     
     sessionsList.innerHTML = sessions.map(session => {
       const date = new Date(session.created_at).toLocaleString();
-      const status = session.is_unlocked ? '✅ Unlocked' : '⏳ Waiting';
-      const createdBy = session.created_by === 'shao' ? 'Shao Ziyue' : (session.friend_name || 'Friend');
+      const status = session.isUnlocked ? t.unlocked : t.waiting;
+      const friendName = `${session.friendFamilyName} ${session.friendGivenName}`;
       return `
-        <div class="session-item" style="padding: 15px; margin-bottom: 10px; background: #f8f9fa; border-radius: 8px; border-left: 4px solid #667eea;">
+        <div class="session-item">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <div>
-              <strong>Session:</strong> ${session.id.substring(0, 8)}...<br>
-              <strong>Created by:</strong> ${createdBy}<br>
-              <strong>Date:</strong> ${date}<br>
-              <strong>Status:</strong> ${status}
+              <strong>${t.sessionWith} ${friendName}</strong><br>
+              <small style="color: var(--text-light);">${date}</small><br>
+              <strong style="color: ${session.isUnlocked ? 'var(--success)' : 'var(--warning)'};">${status}</strong>
             </div>
-            <a href="/session/${session.id}" class="btn btn-primary" style="text-decoration: none;">View / 查看</a>
+            <a href="/session/${session.id}" style="text-decoration: none;">${t.view}</a>
           </div>
         </div>
       `;
@@ -641,387 +410,602 @@ async function loadAllSessions() {
   }
 }
 
-// Recording buttons will be initialized after language selection
+// Join session form (for friends)
+document.getElementById('join-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const sessionId = document.getElementById('session-id-input').value.trim();
+  if (!sessionId) {
+    const t = translations[currentLanguage];
+    alert('Please enter a session ID');
+    return;
+  }
+  window.location.href = `/session/${sessionId}`;
+});
 
-// Create Session (User A)
-document.getElementById('create-btn')?.addEventListener('click', async () => {
+// Create new session (for friends)
+async function createNewSession() {
+  console.log('[DEBUG] createNewSession called', { currentUser });
+  
+  const createBtn = document.getElementById('create-new-session-btn');
+  
+  // Check if button is already disabled
+  if (createBtn && createBtn.disabled) {
+    console.log('[DEBUG] Button already disabled, ignoring click');
+    return;
+  }
+  
+  // Validate current user has name
+  if (!currentUser.familyName || !currentUser.givenName) {
+    const t = translations[currentLanguage];
+    alert(t.pleaseEnterName);
+    return;
+  }
+  
+  // Disable button
+  if (createBtn) {
+    createBtn.disabled = true;
+    const t = translations[currentLanguage];
+    createBtn.textContent = currentLanguage === 'zh' ? '创建中...' : 'Creating...';
+  }
+  
   try {
+    console.log('[DEBUG] Calling /api/sessions with:', {
+      familyName: currentUser.familyName,
+      givenName: currentUser.givenName
+    });
+    
     const response = await fetch('/api/sessions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        createdBy: currentUser.isShao ? 'shao' : 'friend',
-        friendName: currentUser.isShao ? null : currentUser.friendName
+        familyName: currentUser.familyName,
+        givenName: currentUser.givenName
+        // No friend name - will auto-create with Shao Ziyue
+      })
+    });
+    
+    console.log('[DEBUG] Response status:', response.status, response.ok);
+    
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      console.error('[DEBUG] Failed to parse JSON:', text);
+      throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`);
+    }
+    
+    console.log('[DEBUG] Response data:', data);
+    
+    if (response.ok && data.sessionId) {
+      console.log('[DEBUG] Success, navigating to session:', data.sessionId);
+      // Show success message with copy link option
+      showSessionCreatedNotification(data.sessionId);
+      // Navigate after a short delay
+      setTimeout(() => {
+        window.location.href = `/session/${data.sessionId}`;
+      }, 2000);
+      return;
+    } else {
+      const errorMsg = data.error || 'Unknown error occurred';
+      console.error('[DEBUG] API error:', { status: response.status, error: errorMsg, data });
+      const t = translations[currentLanguage];
+      alert(currentLanguage === 'zh' ? `错误: ${errorMsg}` : `Error: ${errorMsg}`);
+      // Re-enable button
+      if (createBtn) {
+        const t = translations[currentLanguage];
+        createBtn.disabled = false;
+        createBtn.textContent = t.create + ' Session / 会话';
+      }
+    }
+  } catch (error) {
+    console.error('[DEBUG] Exception in createNewSession:', error);
+    const t = translations[currentLanguage];
+    alert(currentLanguage === 'zh' ? `创建会话时出错: ${error.message}` : `Error creating session: ${error.message}`);
+    // Re-enable button
+    if (createBtn) {
+      const t = translations[currentLanguage];
+      createBtn.disabled = false;
+      createBtn.textContent = t.create + ' Session / 会话';
+    }
+  }
+}
+
+// Load session
+async function loadSession(sessionId) {
+  const t = translations[currentLanguage];
+  
+  if (!sessionId) {
+    if (currentUser.isShaoZiyue) {
+      showStep('admin-panel');
+    } else {
+      showStep('friend-session-step');
+    }
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/sessions/${sessionId}?familyName=${encodeURIComponent(currentUser.familyName)}&givenName=${encodeURIComponent(currentUser.givenName)}`);
+    
+    if (response.status === 403) {
+      alert(t.nameNotMatch);
+      if (currentUser.isShaoZiyue) {
+        showStep('admin-panel');
+      } else {
+        showStep('friend-session-step');
+      }
+      return;
+    }
+    
+    if (!response.ok) {
+      alert(t.sessionNotFound);
+      if (currentUser.isShaoZiyue) {
+        showStep('admin-panel');
+      } else {
+        showStep('friend-session-step');
+      }
+      return;
+    }
+    
+    const data = await response.json();
+    window.currentSessionId = sessionId;
+    
+    // Determine if current user has sent message
+    const isUserA = data.isUserA;
+    const userHasSent = isUserA ? data.userAUploaded : data.userBUploaded;
+    
+    if (!userHasSent) {
+      // Show message input interface
+      showStep('message-input-step');
+    } else {
+      // Show status interface
+      showStatusInterface(data);
+    }
+  } catch (error) {
+    console.error('Error loading session:', error);
+    alert(t.sessionNotFound);
+    if (currentUser.isShaoZiyue) {
+      showStep('admin-panel');
+    } else {
+      showStep('friend-session-step');
+    }
+  }
+}
+
+// Show status interface (waiting room)
+function showStatusInterface(data) {
+  showStep('status-step');
+  updateStatusDashboard(data);
+  
+  // If unlocked, show messages without blur
+  if (data.isUnlocked) {
+    displayMessages(data);
+    const messagesDisplay = document.getElementById('messages-display');
+    messagesDisplay.classList.remove('blurred');
+  } else {
+    // Show messages if available but keep blurred
+    if (data.userAMessage || data.userBMessage) {
+      displayMessages(data);
+    }
+    const messagesDisplay = document.getElementById('messages-display');
+    messagesDisplay.classList.add('blurred');
+  }
+  
+  // Start polling if not unlocked
+  if (!data.isUnlocked) {
+    startPolling(window.currentSessionId);
+  }
+}
+
+// Update status dashboard
+function updateStatusDashboard(data) {
+  const t = translations[currentLanguage];
+  const isUserA = data.isUserA;
+  
+  // My status
+  const myStatus = document.getElementById('my-status');
+  const myStatusText = document.getElementById('my-status-text');
+  
+  if (myStatus && myStatusText) {
+    const myCheckmark = myStatus.querySelector('.status-checkmark');
+    const myPulse = myStatus.querySelector('.status-pulse');
+    const myHasSent = isUserA ? data.userAUploaded : data.userBUploaded;
+    
+    if (myHasSent) {
+      myStatus.classList.add('complete');
+      if (myCheckmark) myCheckmark.classList.remove('hidden');
+      if (myPulse) myPulse.style.display = 'none';
+      myStatusText.textContent = currentLanguage === 'zh' ? '✅ 已上传 & 加密' : '✅ Uploaded & Encrypted';
+    } else {
+      myStatus.classList.remove('complete');
+      if (myCheckmark) myCheckmark.classList.add('hidden');
+      if (myPulse) myPulse.style.display = 'block';
+      myStatusText.textContent = currentLanguage === 'zh' ? '⏳ 等待中...' : '⏳ Waiting...';
+    }
+  }
+  
+  // Their status
+  const theirStatus = document.getElementById('their-status');
+  const theirStatusText = document.getElementById('their-status-text');
+  
+  if (theirStatus && theirStatusText) {
+    const theirCheckmark = theirStatus.querySelector('.status-checkmark');
+    const theirPulse = theirStatus.querySelector('.status-pulse');
+    const theirHasSent = isUserA ? data.userBUploaded : data.userAUploaded;
+    
+    if (theirHasSent) {
+      theirStatus.classList.add('complete');
+      if (theirCheckmark) theirCheckmark.classList.remove('hidden');
+      if (theirPulse) theirPulse.style.display = 'none';
+      theirStatusText.textContent = currentLanguage === 'zh' ? '✅ 已解锁' : '✅ Unlocked';
+    } else {
+      theirStatus.classList.remove('complete');
+      if (theirCheckmark) theirCheckmark.classList.add('hidden');
+      if (theirPulse) theirPulse.style.display = 'block';
+      theirStatusText.textContent = currentLanguage === 'zh' ? '⏳ 等待朋友...' : '⏳ Waiting for Friend';
+    }
+  }
+}
+
+// Display messages (TEXT ONLY - simplified)
+function displayMessages(data) {
+  const displayContent = document.getElementById('message-display-content');
+  if (!displayContent) return;
+  displayContent.innerHTML = '';
+  
+  // User A message
+  if (data.userAMessage) {
+    const userACard = document.createElement('div');
+    userACard.className = 'message-card';
+    userACard.innerHTML = `
+      <h4>${data.userAFamilyName} ${data.userAGivenName}:</h4>
+      <p>${data.userAMessage}</p>
+    `;
+    displayContent.appendChild(userACard);
+  }
+  
+  // User B message
+  if (data.userBMessage) {
+    const userBCard = document.createElement('div');
+    userBCard.className = 'message-card';
+    userBCard.innerHTML = `
+      <h4>${data.userBFamilyName} ${data.userBGivenName}:</h4>
+      <p>${data.userBMessage}</p>
+    `;
+    displayContent.appendChild(userBCard);
+  }
+}
+
+// Message form submission
+document.getElementById('message-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  
+  const t = translations[currentLanguage];
+  const message = document.getElementById('message-text').value.trim();
+  
+  if (!message) {
+    alert(t.pleaseEnterMessage);
+    return;
+  }
+  
+  if (!window.currentSessionId) {
+    alert(t.sessionNotFound);
+    return;
+  }
+  
+  // Show loading animation
+  const submitBtn = document.getElementById('submit-message-btn');
+  const btnText = submitBtn?.querySelector('.btn-text');
+  const btnLoading = submitBtn?.querySelector('.btn-loading');
+  
+  if (submitBtn) submitBtn.disabled = true;
+  if (btnText) btnText.classList.add('hidden');
+  if (btnLoading) btnLoading.classList.remove('hidden');
+  
+  showStep('loading-step');
+  
+  try {
+    const response = await fetch(`/api/sessions/${window.currentSessionId}/message`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        familyName: currentUser.familyName,
+        givenName: currentUser.givenName,
+        message: message
       })
     });
     
     const data = await response.json();
     
     if (response.ok) {
-      document.getElementById('session-result').classList.remove('hidden');
-      document.getElementById('session-link').value = data.link;
-      
-      // Store session ID for later use
-      window.currentSessionId = data.sessionId;
-      
-      // Setup recording buttons now that the session-result section is visible
-      console.log('Session created, setting up recording buttons...');
-      setTimeout(() => {
-        setupRecordingButtons();
-      }, 100); // Small delay to ensure DOM is updated
-    } else {
-      alert('Failed to create session: ' + data.error);
-    }
-  } catch (error) {
-    alert('Error creating session: ' + error.message);
-  }
-});
-
-// Copy link button
-document.getElementById('copy-btn').addEventListener('click', () => {
-  const linkInput = document.getElementById('session-link');
-  linkInput.select();
-  document.execCommand('copy');
-  
-  const btn = document.getElementById('copy-btn');
-  const originalText = btn.textContent;
-  btn.textContent = 'Copied!';
-  setTimeout(() => {
-    btn.textContent = originalText;
-  }, 2000);
-});
-
-// User A upload form
-document.getElementById('user-a-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  // Stop any active recording
-  stopRecording('A');
-  
-  const formData = new FormData();
-  const message = document.getElementById('user-a-message').value;
-  const file = document.getElementById('user-a-file').files[0];
-  const recordedBlob = recordingState.A.blob;
-  
-  if (message) {
-    formData.append('message', message);
-  }
-  
-  // Check for recorded media first, then uploaded file
-  if (recordedBlob) {
-    const recordedInput = document.getElementById('user-a-recorded-blob');
-    const mimeType = recordedInput.dataset.mimeType || 'audio/webm';
-    const extension = mimeType.includes('video') ? '.webm' : (mimeType.includes('mp4') ? '.mp4' : '.webm');
-    const fileName = `recording-${Date.now()}${extension}`;
-    formData.append('file', recordedBlob, fileName);
-  } else if (file) {
-    formData.append('file', file);
-  }
-  
-  // Add user identity
-  formData.append('isShao', currentUser.isShao);
-  
-  if (!message && !recordedBlob && !file) {
-    const t = translations[currentLanguage] || translations.en;
-    alert(t.pleaseEnterMessage);
-    return;
-  }
-  
-  try {
-    const response = await fetch(`/api/sessions/${window.currentSessionId}/user-a`, {
-      method: 'POST',
-      body: formData
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok) {
-      const t = translations[currentLanguage];
-      const successDiv = document.createElement('div');
-      successDiv.className = 'success-message';
-      successDiv.textContent = t.messageUploaded + ' ' + t.waitingForB;
-      document.getElementById('user-a-form').appendChild(successDiv);
-      
-      // Start polling for updates
-      startPolling(window.currentSessionId);
-    } else {
-      alert('Failed to upload message: ' + data.error);
-    }
-  } catch (error) {
-    alert('Error uploading message: ' + error.message);
-  }
-});
-
-// Join Session (User B)
-document.getElementById('join-btn').addEventListener('click', async () => {
-  const sessionId = document.getElementById('session-id-input').value.trim();
-  
-  if (!sessionId) {
-    alert('Please enter a session ID');
-    return;
-  }
-  
-  window.currentSessionId = sessionId;
-  await loadSession(sessionId);
-});
-
-// Check if URL contains session ID
-window.addEventListener('DOMContentLoaded', () => {
-  // Initialize language selection first (this will setup buttons if language already selected)
-  initLanguageSelection();
-  
-  // Initialize identity selection after language is set
-  setTimeout(() => {
-    initIdentitySelection();
-  }, 200);
-  
-  // Setup refresh button for admin panel
-  const refreshBtn = document.getElementById('refresh-sessions-btn');
-  if (refreshBtn) {
-    refreshBtn.addEventListener('click', () => {
-      loadAllSessions();
-    });
-  }
-  
-  // Only setup recording buttons if language was already selected (otherwise wait for selection)
-  if (currentLanguage && currentLanguage !== null) {
-    setupRecordingButtons();
-  }
-  
-  const path = window.location.pathname;
-  const sessionMatch = path.match(/\/session\/([a-f0-9-]+)/i);
-  
-  if (sessionMatch) {
-    const sessionId = sessionMatch[1];
-    window.currentSessionId = sessionId;
-    const sessionInput = document.getElementById('session-id-input');
-    if (sessionInput) {
-      sessionInput.value = sessionId;
-    }
-    // Delay loadSession to ensure translations are applied
-    setTimeout(() => loadSession(sessionId), 100);
-  }
-});
-
-// Load session status
-async function loadSession(sessionId) {
-  try {
-    const response = await fetch(`/api/sessions/${sessionId}`);
-    const data = await response.json();
-    
-    if (response.ok) {
-      document.getElementById('join-result').classList.remove('hidden');
-      
-      const statusDiv = document.getElementById('session-status');
-      
-      const t = translations[currentLanguage];
-      if (data.isUnlocked) {
-        statusDiv.innerHTML = `<div class="status-message status-unlocked">${t.unlocked}</div>`;
-        displayUnlockedMessages(data);
-      } else {
-        const userAStatus = data.userAUploaded ? t.uploaded : t.waiting;
-        const userBStatus = data.userBUploaded ? t.uploaded : t.waiting;
-        
-        statusDiv.innerHTML = `
-          <div class="status-message status-waiting">
-            <strong>${t.status}</strong><br>
-            User A: ${userAStatus}<br>
-            User B: ${userBStatus}<br>
-            ${!data.userBUploaded ? t.uploadToUnlock : t.waitingForA}
-          </div>
-        `;
-      }
-      
-      // Show upload form if User B hasn't uploaded yet
-      if (!data.userBUploaded) {
-        document.getElementById('user-b-upload').classList.remove('hidden');
-        // Setup recording buttons for User B now that the section is visible
-        setupRecordingButtons();
-      } else {
-        document.getElementById('user-b-upload').classList.add('hidden');
-      }
-      
-      // Start polling if not unlocked
-      if (!data.isUnlocked) {
-        startPolling(sessionId);
-      }
-    } else {
-      alert('Session not found: ' + data.error);
-    }
-  } catch (error) {
-    alert('Error loading session: ' + error.message);
-  }
-}
-
-// User B upload form
-document.getElementById('user-b-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  
-  // Stop any active recording
-  stopRecording('B');
-  
-  const formData = new FormData();
-  const message = document.getElementById('user-b-message').value;
-  const file = document.getElementById('user-b-file').files[0];
-  const recordedBlob = recordingState.B.blob;
-  
-  if (message) {
-    formData.append('message', message);
-  }
-  
-  // Check for recorded media first, then uploaded file
-  if (recordedBlob) {
-    const recordedInput = document.getElementById('user-b-recorded-blob');
-    const mimeType = recordedInput.dataset.mimeType || 'audio/webm';
-    const extension = mimeType.includes('video') ? '.webm' : (mimeType.includes('mp4') ? '.mp4' : '.webm');
-    const fileName = `recording-${Date.now()}${extension}`;
-    formData.append('file', recordedBlob, fileName);
-  } else if (file) {
-    formData.append('file', file);
-  }
-  
-  // Add user identity
-  formData.append('isShao', currentUser.isShao);
-  
-  if (!message && !recordedBlob && !file) {
-    const t = translations[currentLanguage] || translations.en;
-    alert(t.pleaseEnterMessage);
-    return;
-  }
-  
-  try {
-    const response = await fetch(`/api/sessions/${window.currentSessionId}/user-b`, {
-      method: 'POST',
-      body: formData
-    });
-    
-    const data = await response.json();
-    
-    if (response.ok) {
-      const t = translations[currentLanguage];
-      const successDiv = document.createElement('div');
-      successDiv.className = 'success-message';
-      successDiv.textContent = t.messageUploaded + ' ' + t.nowUnlocked;
-      document.getElementById('user-b-form').appendChild(successDiv);
-      
-      // Reload session to show unlocked messages
+      // Small delay for smooth transition animation
       setTimeout(() => {
         loadSession(window.currentSessionId);
       }, 1000);
     } else {
-      alert('Failed to upload message: ' + data.error);
+      // Reset button state
+      if (submitBtn) submitBtn.disabled = false;
+      if (btnText) btnText.classList.remove('hidden');
+      if (btnLoading) btnLoading.classList.add('hidden');
+      showStep('message-input-step');
+      alert('Error: ' + (data.error || 'Failed to send message'));
     }
   } catch (error) {
-    alert('Error uploading message: ' + error.message);
+    console.error('Error sending message:', error);
+    // Reset button state
+    if (submitBtn) submitBtn.disabled = false;
+    if (btnText) btnText.classList.remove('hidden');
+    if (btnLoading) btnLoading.classList.add('hidden');
+    showStep('message-input-step');
+    alert('Error sending message: ' + error.message);
   }
 });
 
-// Poll for session updates
+// Create session with friend (for Shao Ziyue)
+async function createSessionWithFriend() {
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:632',message:'createSessionWithFriend called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
+  console.log('[DEBUG] createSessionWithFriend called');
+  const createBtn = document.getElementById('create-session-btn');
+  
+  // Check if button is already disabled (prevent double-click)
+  if (createBtn && createBtn.disabled) {
+    console.log('[DEBUG] Button already disabled, ignoring click');
+    return;
+  }
+  
+  const t = translations[currentLanguage];
+  const friendFamilyNameInput = document.getElementById('friend-family-name');
+  const friendGivenNameInput = document.getElementById('friend-given-name');
+  
+  if (!friendFamilyNameInput || !friendGivenNameInput) {
+    console.error('[DEBUG] Form inputs not found!');
+    alert(currentLanguage === 'zh' ? '错误: 找不到表单输入框' : 'Error: Form inputs not found');
+    return;
+  }
+  
+  const friendFamilyName = friendFamilyNameInput.value.trim();
+  const friendGivenName = friendGivenNameInput.value.trim();
+  console.log('[DEBUG] Friend names:', { friendFamilyName, friendGivenName });
+  
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:639',message:'Friend name values before validation',data:{friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+  // #endregion
+  
+  if (!friendFamilyName || !friendGivenName) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:643',message:'Validation failed: missing friend name',data:{friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    alert(t.pleaseEnterName);
+    return;
+  }
+  
+  // Disable button to prevent multiple clicks
+  if (createBtn) {
+    createBtn.disabled = true;
+    createBtn.textContent = currentLanguage === 'zh' ? '创建中...' : 'Creating...';
+  }
+  
+  try {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:655',message:'Calling /api/find-session',data:{friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    const response = await fetch('/api/find-session', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        friendFamilyName,
+        friendGivenName
+      })
+    });
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:668',message:'Response received from /api/find-session',data:{status:response.status,ok:response.ok,contentType:response.headers.get('content-type')},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    
+    const text = await response.text();
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (parseError) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:680',message:'Failed to parse JSON response',data:{error:parseError.message,status:response.status,textPreview:text.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      console.error('[DEBUG] Failed to parse JSON:', text);
+      throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`);
+    }
+    
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:689',message:'Response data parsed',data,timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    console.log('[DEBUG] Response data:', { ok: response.ok, status: response.status, data });
+    
+    if (response.ok && data.sessionId) {
+      // Navigate to the session
+      // Show success message with copy link option
+      showSessionCreatedNotification(data.sessionId);
+      // Navigate after a short delay
+      setTimeout(() => {
+        window.location.href = `/session/${data.sessionId}`;
+      }, 2000);
+      // Don't re-enable button since we're navigating away
+      return;
+    } else {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:703',message:'API error response',data:{error:data.error,responseOk:response.ok,hasSessionId:!!data.sessionId,fullData:data},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
+      console.error('[DEBUG] API error:', { status: response.status, ok: response.ok, data });
+      const errorMsg = data.error || (data.sessionId ? 'Session ID missing from response' : 'Unknown error occurred');
+      alert(currentLanguage === 'zh' ? `错误: ${errorMsg}` : `Error: ${errorMsg}`);
+      // Re-enable button on error
+      if (createBtn) {
+        createBtn.disabled = false;
+        createBtn.textContent = t.create;
+      }
+    }
+  } catch (error) {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:710',message:'Exception in createSessionWithFriend',data:{error:error.message,stack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
+    // #endregion
+    console.error('[DEBUG] Exception in createSessionWithFriend:', error);
+    alert(currentLanguage === 'zh' ? `创建会话时出错: ${error.message}` : `Error creating session: ${error.message}`);
+    // Re-enable button on error
+    if (createBtn) {
+      createBtn.disabled = false;
+      createBtn.textContent = t.create;
+    }
+  }
+}
+
+// Polling for status updates
 let pollingInterval = null;
 
 function startPolling(sessionId) {
+  // Clear existing polling
   if (pollingInterval) {
     clearInterval(pollingInterval);
   }
   
+  // Poll every 5 seconds (optimized from 3s)
   pollingInterval = setInterval(async () => {
     try {
-      const response = await fetch(`/api/sessions/${sessionId}`);
-      const data = await response.json();
-      
-      if (data.isUnlocked) {
-        clearInterval(pollingInterval);
-        pollingInterval = null;
-        loadSession(sessionId);
+      const response = await fetch(`/api/sessions/${sessionId}?familyName=${encodeURIComponent(currentUser.familyName)}&givenName=${encodeURIComponent(currentUser.givenName)}`);
+      if (response.ok) {
+        const data = await response.json();
+        updateStatusDashboard(data);
+        
+        // If unlocked, stop polling and refresh display
+        if (data.isUnlocked) {
+          clearInterval(pollingInterval);
+          pollingInterval = null;
+          showStatusInterface(data);
+        }
       }
     } catch (error) {
       console.error('Polling error:', error);
     }
-  }, 2000); // Poll every 2 seconds
+  }, 5000); // Changed from 3000ms to 5000ms
 }
 
-// Display unlocked messages
-function displayUnlockedMessages(data) {
-  const messagesDiv = document.getElementById('unlocked-messages');
-  const displayDiv = document.getElementById('message-display');
-  
-  messagesDiv.classList.remove('hidden');
-  displayDiv.innerHTML = '';
-  
-    const t = translations[currentLanguage];
-    
-    // User A message
-    if (data.userAMessage || data.userAFilePath) {
-      const userACard = document.createElement('div');
-      userACard.className = 'message-card';
-      userACard.innerHTML = `<h4>${t.userAMessage}</h4>`;
-    
-    if (data.userAMessage) {
-      const messageP = document.createElement('p');
-      messageP.textContent = data.userAMessage;
-      userACard.appendChild(messageP);
-    }
-    
-    if (data.userAFilePath) {
-      const fileName = data.userAFilePath.split('/').pop();
-      if (data.userAFileType.startsWith('audio/')) {
-        const audio = document.createElement('audio');
-        audio.controls = true;
-        audio.src = `/api/files/${fileName}`;
-        userACard.appendChild(audio);
-      } else if (data.userAFileType.startsWith('video/')) {
-        const video = document.createElement('video');
-        video.controls = true;
-        video.src = `/api/files/${fileName}`;
-        userACard.appendChild(video);
-      } else {
-        const t = translations[currentLanguage];
-        const link = document.createElement('a');
-        link.href = `/api/files/${fileName}`;
-        link.target = '_blank';
-        link.textContent = `${t.downloadFile} ${fileName}`;
-        userACard.appendChild(link);
-      }
-    }
-    
-    displayDiv.appendChild(userACard);
-  }
-  
-  // User B message
-  if (data.userBMessage || data.userBFilePath) {
-    const userBCard = document.createElement('div');
-    userBCard.className = 'message-card';
-    userBCard.innerHTML = `<h4>${t.userBMessage}</h4>`;
-    
-    if (data.userBMessage) {
-      const messageP = document.createElement('p');
-      messageP.textContent = data.userBMessage;
-      userBCard.appendChild(messageP);
-    }
-    
-    if (data.userBFilePath) {
-      const fileName = data.userBFilePath.split('/').pop();
-      if (data.userBFileType.startsWith('audio/')) {
-        const audio = document.createElement('audio');
-        audio.controls = true;
-        audio.src = `/api/files/${fileName}`;
-        userBCard.appendChild(audio);
-      } else if (data.userBFileType.startsWith('video/')) {
-        const video = document.createElement('video');
-        video.controls = true;
-        video.src = `/api/files/${fileName}`;
-        userBCard.appendChild(video);
-      } else {
-        const link = document.createElement('a');
-        link.href = `/api/files/${fileName}`;
-        link.target = '_blank';
-        link.textContent = `${t.downloadFile} ${fileName}`;
-        userBCard.appendChild(link);
-      }
-    }
-    
-    displayDiv.appendChild(userBCard);
+function stopPolling() {
+  if (pollingInterval) {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
   }
 }
+
+// Copy session link to clipboard with notification
+function copySessionLink(sessionId) {
+  const link = `${window.location.origin}/session/${sessionId}`;
+  
+  navigator.clipboard.writeText(link).then(() => {
+    showToast(currentLanguage === 'zh' ? '✓ 链接已复制！' : '✓ Link copied!');
+  }).catch(err => {
+    console.error('Failed to copy:', err);
+    // Fallback for older browsers
+    showToast(currentLanguage === 'zh' ? '请手动复制链接' : 'Please copy link manually');
+  });
+}
+
+// Show toast notification
+function showToast(message, duration = 3000) {
+  // Remove existing toast if any
+  const existingToast = document.querySelector('.toast-notification');
+  if (existingToast) {
+    existingToast.remove();
+  }
+  
+  const toast = document.createElement('div');
+  toast.className = 'toast-notification';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  // Trigger animation
+  setTimeout(() => toast.classList.add('show'), 10);
+  
+  // Remove after duration
+  setTimeout(() => {
+    toast.classList.remove('show');
+    setTimeout(() => toast.remove(), 300);
+  }, duration);
+}
+
+// Show session created notification with copy link
+function showSessionCreatedNotification(sessionId) {
+  const t = translations[currentLanguage];
+  const message = currentLanguage === 'zh' 
+    ? '✓ 会话创建成功！正在跳转...' 
+    : '✓ Session created! Redirecting...';
+  
+  showToast(message, 2000);
+  
+  // Also log the link for easy access
+  const link = `${window.location.origin}/session/${sessionId}`;
+  console.log('[SESSION] Created:', link);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('[INIT] ========================================');
+  console.log('[INIT] DOMContentLoaded - Starting initialization');
+  console.log('[INIT] localStorage check:', {
+    language: localStorage.getItem('messager-language'),
+    user: localStorage.getItem('messager-user')
+  });
+  console.log('[INIT] ========================================');
+  
+  initLanguageSelection();
+  
+  // Create session form for admin
+  const createSessionForm = document.getElementById('create-session-form');
+  if (createSessionForm) {
+    createSessionForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      createSessionWithFriend();
+    });
+  }
+  
+  // Create new session button for friends
+  document.getElementById('create-new-session-btn')?.addEventListener('click', () => {
+    createNewSession();
+  });
+  
+  // Change name button
+  document.getElementById('change-name-btn')?.addEventListener('click', () => {
+    changeName();
+  });
+  
+  // Logout buttons (admin and friend)
+  document.getElementById('logout-btn')?.addEventListener('click', () => {
+    logout();
+  });
+  
+  document.getElementById('logout-btn-friend')?.addEventListener('click', () => {
+    logout();
+  });
+  
+  document.getElementById('logout-btn-message')?.addEventListener('click', () => {
+    logout();
+  });
+  
+  document.getElementById('logout-btn-status')?.addEventListener('click', () => {
+    logout();
+  });
+  
+  // Back button - returns to admin/friend panel
+  document.getElementById('back-to-panel-btn')?.addEventListener('click', () => {
+    goBackToPanel();
+  });
+  
+  // View all sessions button - returns to panel from waiting room
+  document.getElementById('view-all-sessions-btn')?.addEventListener('click', () => {
+    goBackToPanel();
+  });
+});

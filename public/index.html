@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Messager - Mutual Message Unlock</title>
-  <link rel="stylesheet" href="style.css">
+  <title>Messager - Shao Ziyue</title>
+  <link rel="stylesheet" href="/style.css">
 </head>
 <body>
   <!-- Language Selection Modal -->
@@ -18,139 +18,143 @@
     </div>
   </div>
 
-  <div class="container hidden" id="main-container">
-    <header>
-      <h1>🔒 Messager - Shao Ziyue</h1>
-      <p class="subtitle">Personal Message Exchange System</p>
-    </header>
-
-    <!-- Identity Selection -->
-    <section id="identity-section" class="card">
-      <h2 id="identity-title">Who are you? / 你是谁？</h2>
-      <div class="identity-buttons">
-        <button id="identity-shao" class="btn btn-primary identity-btn">Shao Ziyue (我)</button>
-        <button id="identity-friend" class="btn btn-primary identity-btn">Friend / 朋友</button>
-      </div>
-      <div id="friend-name-input" class="hidden" style="margin-top: 20px;">
-        <label for="friend-name">Your Name / 你的名字:</label>
-        <input type="text" id="friend-name" placeholder="Enter your name" style="width: 100%; padding: 10px; margin-top: 10px; border-radius: 8px; border: 2px solid #e0e0e0;">
-      </div>
-    </section>
-
-    <!-- Admin Panel (Shao Ziyue only) -->
-    <section id="admin-panel" class="card hidden">
-      <h2>📋 All Sessions / 所有会话</h2>
-      <button id="refresh-sessions-btn" class="btn btn-secondary">Refresh / 刷新</button>
-      <div id="sessions-list" style="margin-top: 20px;"></div>
-    </section>
-
-    <!-- Create Session Section (User A) -->
-    <section id="create-section" class="card hidden">
-      <h2 id="create-title">Create a New Session</h2>
-      <p id="create-desc">Click below to create a session and get your unique link to share.</p>
-      <button id="create-btn" class="btn btn-primary">Create Session</button>
-      <div id="session-result" class="hidden">
-        <div class="session-link-container">
-          <label>Your Session Link:</label>
-          <div class="link-display">
-            <input type="text" id="session-link" readonly>
-            <button id="copy-btn" class="btn btn-secondary">Copy</button>
+  <div class="app-container hidden" id="main-container">
+    
+    <!-- Name Input Step -->
+    <div id="name-step" class="step-container hidden">
+      <div class="centered-card">
+        <h1 class="step-title" id="name-title">Enter Your Name</h1>
+        <form id="name-form" class="clean-form">
+          <div class="form-row">
+            <input type="text" id="family-name" placeholder="Family Name" required autofocus>
+            <input type="text" id="given-name" placeholder="Given Name" required>
           </div>
-          <p class="info-text">Share this link with User B. Once both of you upload messages, they will be unlocked!</p>
+          <button type="submit" class="btn btn-primary btn-large" id="submit-name-btn">Continue</button>
+        </form>
+        <p class="change-name-link">
+          <button id="change-name-btn" class="link-button hidden">Change Name</button>
+        </p>
+      </div>
+    </div>
+
+    <!-- Admin Panel (Shao Ziyue) -->
+    <div id="admin-panel" class="step-container hidden">
+      <div class="centered-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h1 class="step-title" id="admin-title" style="margin: 0;">All Friends</h1>
+          <button id="logout-btn" class="btn-secondary">Logout</button>
         </div>
-        <div class="upload-section">
-          <h3>Upload Your Message (User A)</h3>
-          <form id="user-a-form">
-            <div class="form-group">
-              <label for="user-a-message">Text Message (optional):</label>
-              <textarea id="user-a-message" placeholder="Enter your message here..."></textarea>
+        <div id="sessions-list" class="sessions-list"></div>
+        <div class="create-session-form">
+          <h3 id="create-session-title">Create Session with Friend</h3>
+          <form id="create-session-form" class="clean-form">
+            <div class="form-row">
+              <input type="text" id="friend-family-name" placeholder="Friend Family Name">
+              <input type="text" id="friend-given-name" placeholder="Friend Given Name">
             </div>
-            <div class="form-group">
-              <label>Record Audio/Video:</label>
-              <div class="recording-controls">
-                <div class="record-button-group">
-                  <button type="button" id="user-a-record-audio" class="btn btn-primary record-btn">
-                    🎤 Record Audio
-                  </button>
-                  <button type="button" id="user-a-record-video" class="btn btn-primary record-btn">
-                    🎥 Record Video
-                  </button>
-                </div>
-                <div id="user-a-recording-status" class="recording-status hidden">
-                  <span class="recording-timer" id="user-a-timer">00:00</span>
-                </div>
-                <div id="user-a-record-preview" class="record-preview hidden"></div>
-              </div>
-              <input type="hidden" id="user-a-recorded-blob">
-            </div>
-            <div class="or-divider">OR</div>
-            <div class="form-group">
-              <label for="user-a-file">Upload File (Text/Audio/Video - optional):</label>
-              <input type="file" id="user-a-file" accept="text/*,audio/*,video/*">
-            </div>
-            <button type="submit" class="btn btn-primary">Upload Message</button>
+            <button type="submit" class="btn btn-primary btn-large" id="create-session-btn">Create</button>
           </form>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Join Session Section (User B) -->
-    <section id="join-section" class="card hidden">
-      <h2 id="join-title">Join a Session</h2>
-      <p>Enter a session ID from the URL (e.g., /session/abc123)</p>
-      <div class="input-group">
-        <input type="text" id="session-id-input" placeholder="Enter session ID">
-        <button id="join-btn" class="btn btn-primary">Join Session</button>
-      </div>
-      <div id="join-result" class="hidden">
-        <div id="session-status"></div>
-        <div id="user-b-upload" class="hidden">
-          <h3 id="upload-title-b">Upload Your Message (User B)</h3>
-          <form id="user-b-form">
-            <div class="form-group">
-              <label for="user-b-message">Text Message (optional):</label>
-              <textarea id="user-b-message" placeholder="Enter your message here..."></textarea>
-            </div>
-            <div class="form-group">
-              <label>Record Audio/Video:</label>
-              <div class="recording-controls">
-                <div class="record-button-group">
-                  <button type="button" id="user-b-record-audio" class="btn btn-primary record-btn">
-                    🎤 Record Audio
-                  </button>
-                  <button type="button" id="user-b-record-video" class="btn btn-primary record-btn">
-                    🎥 Record Video
-                  </button>
-                </div>
-                <div id="user-b-recording-status" class="recording-status hidden">
-                  <span class="recording-timer" id="user-b-timer">00:00</span>
-                </div>
-                <div id="user-b-record-preview" class="record-preview hidden"></div>
-              </div>
-              <input type="hidden" id="user-b-recorded-blob">
-            </div>
-            <div class="or-divider">OR</div>
-            <div class="form-group">
-              <label for="user-b-file">Upload File (Text/Audio/Video - optional):</label>
-              <input type="file" id="user-b-file" accept="text/*,audio/*,video/*">
-            </div>
-            <button type="submit" class="btn btn-primary">Upload Message</button>
-          </form>
+    <!-- Friend: Join/Create Session Step -->
+    <div id="friend-session-step" class="step-container hidden">
+      <div class="centered-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h1 class="step-title" id="friend-session-title" style="margin: 0;">Join or Create Session</h1>
+          <button id="logout-btn-friend" class="btn-secondary">Logout</button>
         </div>
-        <div id="unlocked-messages" class="hidden">
-          <h3>✨ Unlocked Messages</h3>
-          <div id="message-display"></div>
+        <div class="session-actions">
+          <div class="action-group">
+            <h3 id="join-title">Join Session</h3>
+            <form id="join-form" class="clean-form">
+              <input type="text" id="session-id-input" placeholder="Session ID" required>
+              <button type="submit" class="btn btn-primary btn-large" id="join-session-btn">Join</button>
+            </form>
+          </div>
+          <div class="divider">OR</div>
+          <div class="action-group">
+            <h3 id="create-new-title">Create New Session</h3>
+            <button id="create-new-session-btn" class="btn btn-primary btn-large">Create Session</button>
+          </div>
         </div>
       </div>
-    </section>
+    </div>
 
-    <!-- Messages Display -->
-    <section id="messages-section" class="card hidden">
-      <h2>Session Messages</h2>
-      <div id="messages-container"></div>
-    </section>
+    <!-- Message Input Interface (Page A) -->
+    <div id="message-input-step" class="step-container hidden">
+      <div class="centered-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <button id="back-to-panel-btn" class="btn-back">← Back</button>
+          <button id="logout-btn-message" class="btn-secondary">Logout</button>
+        </div>
+        <h1 class="step-title" id="input-title">Leave a Message</h1>
+        <p class="step-subtitle">Just leave a message.</p>
+        <form id="message-form" class="clean-form">
+          <textarea id="message-text" placeholder="Enter your message here..." rows="6" required></textarea>
+          <button type="submit" class="btn btn-primary btn-large" id="submit-message-btn">
+            <span class="btn-text">Submit</span>
+            <span class="btn-loading hidden">⏳</span>
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Loading Transition -->
+    <div id="loading-step" class="step-container hidden">
+      <div class="centered-card loading-card">
+        <div class="spinner"></div>
+        <p class="loading-text">Processing...</p>
+      </div>
+    </div>
+
+    <!-- Status Interface (Waiting Room) -->
+    <div id="status-step" class="step-container hidden">
+      <div class="centered-card status-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <button id="view-all-sessions-btn" class="btn-back">View All Sessions</button>
+          <button id="logout-btn-status" class="btn-secondary">Logout</button>
+        </div>
+        <h1 class="step-title">Waiting Room</h1>
+        
+        <div class="status-dashboard">
+          <!-- My Status -->
+          <div class="status-indicator" id="my-status">
+            <div class="status-icon">
+              <div class="status-checkmark hidden">✓</div>
+              <div class="status-pulse"></div>
+            </div>
+            <div class="status-info">
+              <h3 id="my-status-title">Me</h3>
+              <p class="status-text" id="my-status-text">⏳ Waiting...</p>
+            </div>
+          </div>
+
+          <!-- Their Status -->
+          <div class="status-indicator" id="their-status">
+            <div class="status-icon">
+              <div class="status-checkmark hidden">✓</div>
+              <div class="status-pulse"></div>
+            </div>
+            <div class="status-info">
+              <h3 id="their-status-title">Friend</h3>
+              <p class="status-text" id="their-status-text">⏳ Waiting...</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Messages Display (Blurred until unlocked) -->
+        <div id="messages-display" class="messages-container blurred">
+          <div id="message-display-content"></div>
+          <div class="blur-overlay">
+            <p class="blur-text">Both messages are required to unlock</p>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="/script.js"></script>
 </body>
 </html>

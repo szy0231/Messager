@@ -37,12 +37,45 @@
       </div>
     </div>
 
+    <!-- PIN Input Step (for existing users) -->
+    <div id="pin-input-step" class="step-container hidden">
+      <div class="centered-card">
+        <h1 class="step-title">🔐 Enter Your PIN</h1>
+        <p class="step-subtitle">Welcome back, <span id="pin-user-name"></span>!</p>
+        <form id="pin-form" class="clean-form">
+          <input type="text" id="pin-input" placeholder="4-digit PIN" maxlength="4" pattern="\d{4}" required autofocus>
+          <button type="submit" class="btn btn-primary btn-large">Login</button>
+        </form>
+        <p class="help-text">Forgot your PIN? Contact Shao Ziyue for help.</p>
+        <button id="back-to-name-btn" class="link-button">← Change Name</button>
+      </div>
+    </div>
+
+    <!-- PIN Display Step (for new users) -->
+    <div id="pin-display-step" class="step-container hidden">
+      <div class="centered-card pin-card-highlight">
+        <h1 class="step-title">🎉 Welcome!</h1>
+        <p class="step-subtitle">Your account has been created.</p>
+        <div class="pin-display-box">
+          <p class="pin-label">⚠️ YOUR PIN IS:</p>
+          <h2 class="pin-number" id="displayed-pin">0000</h2>
+          <p class="pin-warning">🚨 MEMORIZE THIS NOW! 🚨</p>
+          <p class="pin-help">You'll need this PIN every time you log in.<br>
+          If you forget it, only <strong>Shao Ziyue</strong> can help you recover it.</p>
+        </div>
+        <button id="pin-understood-btn" class="btn btn-primary btn-large">I've Saved My PIN</button>
+      </div>
+    </div>
+
     <!-- Admin Panel (Shao Ziyue) -->
     <div id="admin-panel" class="step-container hidden">
       <div class="centered-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
           <h1 class="step-title" id="admin-title" style="margin: 0;">All Friends</h1>
-          <button id="logout-btn" class="btn-secondary">Logout</button>
+          <div>
+            <button id="user-directory-btn" class="btn-secondary" style="margin-right: 8px;">🔑 Users</button>
+            <button id="logout-btn" class="btn-secondary">Logout</button>
+          </div>
         </div>
         <div id="sessions-list" class="sessions-list"></div>
         <div class="create-session-form">
@@ -55,6 +88,20 @@
             <button type="submit" class="btn btn-primary btn-large" id="create-session-btn">Create</button>
           </form>
         </div>
+      </div>
+    </div>
+
+    <!-- User Directory (Admin Only) -->
+    <div id="user-directory-panel" class="step-container hidden">
+      <div class="centered-card">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+          <h1 class="step-title" style="margin: 0;">🔑 User Directory</h1>
+          <div>
+            <button id="back-to-admin-btn" class="btn-secondary" style="margin-right: 8px;">← Back</button>
+            <button id="logout-btn-directory" class="btn-secondary">Logout</button>
+          </div>
+        </div>
+        <div id="users-list" class="users-list"></div>
       </div>
     </div>
 
@@ -106,6 +153,22 @@
       <div class="centered-card loading-card">
         <div class="spinner"></div>
         <p class="loading-text">Processing...</p>
+      </div>
+    </div>
+
+    <!-- Success Celebration (First Session) -->
+    <div id="success-step" class="step-container hidden">
+      <div class="centered-card success-card">
+        <h1 class="step-title">🎉 SUCCESS!</h1>
+        <p class="success-message">Your first session with <strong><span id="success-friend-name"></span></strong> has been created!</p>
+        <div class="success-details">
+          <p><strong>📝 Session ID:</strong> <span id="success-session-id"></span></p>
+          <p class="success-note">Share this Session ID with your friend so they can join!</p>
+        </div>
+        <div class="success-actions">
+          <button id="goto-session-btn" class="btn btn-primary btn-large">Go to Session</button>
+          <button id="back-to-dashboard-btn" class="btn-secondary">Back to Dashboard</button>
+        </div>
       </div>
     </div>
 

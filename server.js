@@ -35,6 +35,17 @@ const db = new sqlite3.Database('messager.db');
 
 // Create tables
 db.serialize(() => {
+  // Users table for PIN authentication
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    family_name TEXT NOT NULL,
+    given_name TEXT NOT NULL,
+    pin TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(family_name, given_name)
+  )`);
+  
+  // Sessions table
   db.run(`CREATE TABLE IF NOT EXISTS sessions (
     id TEXT PRIMARY KEY,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
@@ -51,6 +62,18 @@ db.serialize(() => {
     user_a_uploaded INTEGER DEFAULT 0,
     user_b_uploaded INTEGER DEFAULT 0
   )`);
+  
+  // Insert Shao Ziyue with fixed PIN 0231 if not exists
+  db.run(`INSERT OR IGNORE INTO users (family_name, given_name, pin) VALUES (?, ?, ?)`,
+    ['Shao', 'Ziyue', '0231'],
+    (err) => {
+      if (err) {
+        console.error('[SERVER] Error creating Shao Ziyue user:', err);
+      } else {
+        console.log('[SERVER] Shao Ziyue user initialized');
+      }
+    }
+  );
 });
 
 // Middleware
@@ -103,7 +126,172 @@ function assignUserPositions(user1Family, user1Given, user2Family, user2Given) {
   }
 }
 
+// Helper function to generate random 4-digit PIN
+function generatePIN() {
+  return Math.floor(1000 + Math.random() * 9000).toString();
+}
+
 // Routes
+
+// Check if user exists
+app.post('/api/check-user', (req, res) => {
+  const { familyName, givenName } = req.body;
+  
+  if (!familyName || !givenName) {
+    return res.status(400).json({ error: 'Family name and given name are required' });
+  }
+  
+  db.get(
+    'SELECT id, pin FROM users WHERE LOWER(family_name) = LOWER(?) AND LOWER(given_name) = LOWER(?)',
+    [familyName, givenName],
+    (err, user) => {
+      if (err) {
+        console.error('[SERVER] Database error:', err);
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.json({ 
+        exists: !!user,
+        isShaoZiyue: isShaoZiyue(familyName, givenName)
+      });
+    }
+  );
+});
+
+// Register new user (returns generated PIN)
+app.post('/api/register', (req, res) => {
+  const { familyName, givenName } = req.body;
+  
+  if (!familyName || !givenName) {
+    return res.status(400).json({ error: 'Family name and given name are required' });
+  }
+  
+  // Check if user already exists
+  db.get(
+    'SELECT id FROM users WHERE LOWER(family_name) = LOWER(?) AND LOWER(given_name) = LOWER(?)',
+    [familyName, givenName],
+    (err, existingUser) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      if (existingUser) {
+        return res.status(400).json({ error: 'User already exists' });
+      }
+      
+      // Generate PIN
+      const pin = generatePIN();
+      
+      // Insert new user
+      db.run(
+        'INSERT INTO users (family_name, given_name, pin) VALUES (?, ?, ?)',
+        [familyName, givenName, pin],
+        function(insertErr) {
+          if (insertErr) {
+            console.error('[SERVER] Error creating user:', insertErr);
+            return res.status(500).json({ error: 'Failed to create user' });
+          }
+          
+          console.log(`[SERVER] New user registered: ${familyName} ${givenName}, PIN: ${pin}`);
+          res.json({ 
+            success: true, 
+            pin: pin,
+            userId: this.lastID
+          });
+        }
+      );
+    }
+  );
+});
+
+// Login (verify PIN)
+app.post('/api/login', (req, res) => {
+  const { familyName, givenName, pin } = req.body;
+  
+  if (!familyName || !givenName || !pin) {
+    return res.status(400).json({ error: 'Family name, given name, and PIN are required' });
+  }
+  
+  db.get(
+    'SELECT id, pin FROM users WHERE LOWER(family_name) = LOWER(?) AND LOWER(given_name) = LOWER(?)',
+    [familyName, givenName],
+    (err, user) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      if (user.pin !== pin) {
+        console.log(`[SERVER] Failed login attempt for ${familyName} ${givenName}`);
+        return res.status(401).json({ error: 'Incorrect PIN' });
+      }
+      
+      console.log(`[SERVER] Successful login: ${familyName} ${givenName}`);
+      res.json({ 
+        success: true,
+        userId: user.id,
+        isShaoZiyue: isShaoZiyue(familyName, givenName)
+      });
+    }
+  );
+});
+
+// Get all users (admin only)
+app.get('/api/users', (req, res) => {
+  const { adminFamilyName, adminGivenName } = req.query;
+  
+  // Verify admin
+  if (!isShaoZiyue(adminFamilyName, adminGivenName)) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  db.all(
+    'SELECT id, family_name, given_name, pin, created_at FROM users ORDER BY created_at DESC',
+    [],
+    (err, users) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      res.json({ users });
+    }
+  );
+});
+
+// Reset user PIN (admin only)
+app.put('/api/reset-pin/:userId', (req, res) => {
+  const { userId } = req.params;
+  const { adminFamilyName, adminGivenName, newPin } = req.body;
+  
+  // Verify admin
+  if (!isShaoZiyue(adminFamilyName, adminGivenName)) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  if (!newPin || newPin.length !== 4 || !/^\d{4}$/.test(newPin)) {
+    return res.status(400).json({ error: 'PIN must be 4 digits' });
+  }
+  
+  db.run(
+    'UPDATE users SET pin = ? WHERE id = ?',
+    [newPin, userId],
+    function(err) {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      if (this.changes === 0) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      console.log(`[SERVER] Admin reset PIN for user ID: ${userId}`);
+      res.json({ success: true });
+    }
+  );
+});
 
 // Create a new session
 app.post('/api/sessions', (req, res) => {

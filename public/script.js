@@ -9,7 +9,8 @@ let currentLanguage = 'en';
 let currentUser = {
   familyName: null,
   givenName: null,
-  isShaoZiyue: false
+  isShaoZiyue: false,
+  pinVerified: false
 };
 
 // Load user from localStorage (always load saved user, even in dev mode)
@@ -203,11 +204,22 @@ function initNameSection() {
   console.log('[INIT] initNameSection called');
   console.log('[INIT] currentUser:', currentUser);
   
-  // CHECK USER FIRST - if they already have a name, skip to main interface
+  // CHECK USER FIRST - if they already have a name and PIN verified, skip to main interface
   if (currentUser.familyName && currentUser.givenName) {
-    console.log('[INIT] ✓ User already has name, skipping to main interface');
+    console.log('[INIT] ✓ User already has name');
     currentUser.isShaoZiyue = isShaoZiyueName(currentUser.familyName, currentUser.givenName);
-    showMainInterface();
+    
+    // Check if PIN is verified (for returning users in same session)
+    if (currentUser.pinVerified) {
+      console.log('[INIT] ✓ PIN already verified, skipping to main interface');
+      showMainInterface();
+      return;
+    }
+    
+    // PIN not verified - show PIN input
+    console.log('[INIT] PIN not verified, showing PIN input');
+    document.getElementById('pin-user-name').textContent = `${currentUser.familyName} ${currentUser.givenName}`;
+    showStep('pin-input-step');
     return;  // EXIT EARLY - don't show name input!
   }
   
@@ -236,7 +248,7 @@ function initNameSection() {
   
   console.log('[INIT] Name form listener attached');
   
-  newNameForm.addEventListener('submit', (e) => {
+  newNameForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
     const familyName = document.getElementById('family-name').value.trim();
@@ -248,14 +260,162 @@ function initNameSection() {
       return;
     }
     
-    currentUser.familyName = familyName;
-    currentUser.givenName = givenName;
-    currentUser.isShaoZiyue = isShaoZiyueName(familyName, givenName);
-    
-    localStorage.setItem('messager-user', JSON.stringify(currentUser));
-    
-    showMainInterface();
+    // Check if user exists
+    try {
+      const response = await fetch('/api/check-user', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ familyName, givenName })
+      });
+      
+      const data = await response.json();
+      
+      // Store name temporarily
+      currentUser.familyName = familyName;
+      currentUser.givenName = givenName;
+      currentUser.isShaoZiyue = data.isShaoZiyue;
+      
+      if (data.exists) {
+        // Existing user - ask for PIN
+        document.getElementById('pin-user-name').textContent = `${familyName} ${givenName}`;
+        showStep('pin-input-step');
+      } else {
+        // New user - register and show PIN
+        await registerNewUser(familyName, givenName);
+      }
+    } catch (error) {
+      console.error('Error checking user:', error);
+      alert('Error connecting to server. Please try again.');
+    }
   });
+}
+
+// Register new user
+async function registerNewUser(familyName, givenName) {
+  try {
+    const response = await fetch('/api/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ familyName, givenName })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      // Show PIN to user
+      document.getElementById('displayed-pin').textContent = data.pin;
+      showStep('pin-display-step');
+    } else {
+      alert('Error creating account. Please try again.');
+    }
+  } catch (error) {
+    console.error('Error registering user:', error);
+    alert('Error connecting to server. Please try again.');
+  }
+}
+
+// Verify PIN
+async function verifyPIN(familyName, givenName, pin) {
+  try {
+    const response = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ familyName, givenName, pin })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      currentUser.pinVerified = true;
+      currentUser.isShaoZiyue = data.isShaoZiyue;
+      localStorage.setItem('messager-user', JSON.stringify(currentUser));
+      showMainInterface();
+    } else {
+      alert(data.error || 'Incorrect PIN. Please try again or contact Shao Ziyue for help.');
+      document.getElementById('pin-input').value = '';
+    }
+  } catch (error) {
+    console.error('Error verifying PIN:', error);
+    alert('Error connecting to server. Please try again.');
+  }
+}
+
+// Load user directory (admin only)
+async function loadUserDirectory() {
+  if (!currentUser.isShaoZiyue) return;
+  
+  try {
+    const response = await fetch(`/api/users?adminFamilyName=${encodeURIComponent(currentUser.familyName)}&adminGivenName=${encodeURIComponent(currentUser.givenName)}`);
+    const data = await response.json();
+    
+    const usersList = document.getElementById('users-list');
+    if (!usersList) return;
+    
+    if (!data.users || data.users.length === 0) {
+      usersList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">No users registered yet.</p>';
+      return;
+    }
+    
+    usersList.innerHTML = data.users.map(user => `
+      <div class="user-card">
+        <div class="user-card-header">
+          <div>
+            <span class="user-name">${user.family_name} ${user.given_name}</span>
+            ${user.family_name === 'Shao' && user.given_name === 'Ziyue' ? '<span class="user-badge">ADMIN</span>' : ''}
+          </div>
+          <div class="user-pin">${user.pin}</div>
+        </div>
+        <div class="user-details">
+          Registered: ${new Date(user.created_at).toLocaleDateString()}
+        </div>
+        ${user.family_name !== 'Shao' || user.given_name !== 'Ziyue' ? `
+          <div class="user-actions">
+            <button class="btn-small" onclick="resetUserPIN(${user.id}, '${user.family_name}', '${user.given_name}')">Reset PIN</button>
+          </div>
+        ` : ''}
+      </div>
+    `).join('');
+  } catch (error) {
+    console.error('Error loading users:', error);
+    alert('Error loading user directory.');
+  }
+}
+
+// Reset user PIN (admin only)
+async function resetUserPIN(userId, familyName, givenName) {
+  if (!currentUser.isShaoZiyue) return;
+  
+  const newPin = prompt(`Enter new 4-digit PIN for ${familyName} ${givenName}:`);
+  if (!newPin) return;
+  
+  if (!/^\d{4}$/.test(newPin)) {
+    alert('PIN must be exactly 4 digits.');
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/reset-pin/${userId}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adminFamilyName: currentUser.familyName,
+        adminGivenName: currentUser.givenName,
+        newPin
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert(`PIN reset successfully! New PIN: ${newPin}`);
+      loadUserDirectory(); // Reload the list
+    } else {
+      alert(data.error || 'Error resetting PIN.');
+    }
+  } catch (error) {
+    console.error('Error resetting PIN:', error);
+    alert('Error connecting to server.');
+  }
 }
 
 // Show main interface based on user type
@@ -480,13 +640,18 @@ async function createNewSession() {
     console.log('[DEBUG] Response data:', data);
     
     if (response.ok && data.sessionId) {
-      console.log('[DEBUG] Success, navigating to session:', data.sessionId);
-      // Show success message with copy link option
-      showSessionCreatedNotification(data.sessionId);
-      // Navigate after a short delay
-      setTimeout(() => {
-        window.location.href = `/session/${data.sessionId}`;
-      }, 2000);
+      console.log('[DEBUG] Success, showing success page:', data.sessionId);
+      // Show success celebration page
+      document.getElementById('success-friend-name').textContent = 'Shao Ziyue';
+      document.getElementById('success-session-id').textContent = data.sessionId;
+      showStep('success-step');
+      
+      // Re-enable button
+      if (createBtn) {
+        const t = translations[currentLanguage];
+        createBtn.disabled = false;
+        createBtn.textContent = t.create + ' Session / 会话';
+      }
       return;
     } else {
       const errorMsg = data.error || 'Unknown error occurred';
@@ -828,14 +993,20 @@ async function createSessionWithFriend() {
     console.log('[DEBUG] Response data:', { ok: response.ok, status: response.status, data });
     
     if (response.ok && data.sessionId) {
-      // Navigate to the session
-      // Show success message with copy link option
-      showSessionCreatedNotification(data.sessionId);
-      // Navigate after a short delay
-      setTimeout(() => {
-        window.location.href = `/session/${data.sessionId}`;
-      }, 2000);
-      // Don't re-enable button since we're navigating away
+      // Show success celebration page
+      document.getElementById('success-friend-name').textContent = `${friendFamilyName} ${friendGivenName}`;
+      document.getElementById('success-session-id').textContent = data.sessionId;
+      showStep('success-step');
+      
+      // Clear form
+      friendFamilyNameInput.value = '';
+      friendGivenNameInput.value = '';
+      
+      // Re-enable button
+      if (createBtn) {
+        createBtn.disabled = false;
+        createBtn.textContent = t.create;
+      }
       return;
     } else {
       // #region agent log
@@ -1002,6 +1173,58 @@ document.addEventListener('DOMContentLoaded', () => {
   // Back button - returns to admin/friend panel
   document.getElementById('back-to-panel-btn')?.addEventListener('click', () => {
     goBackToPanel();
+  });
+  
+  // PIN form submission
+  document.getElementById('pin-form')?.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const pin = document.getElementById('pin-input').value.trim();
+    if (pin.length !== 4) {
+      alert('Please enter a 4-digit PIN');
+      return;
+    }
+    await verifyPIN(currentUser.familyName, currentUser.givenName, pin);
+  });
+  
+  // Back to name button from PIN input
+  document.getElementById('back-to-name-btn')?.addEventListener('click', () => {
+    showNameInput();
+  });
+  
+  // PIN display understood button
+  document.getElementById('pin-understood-btn')?.addEventListener('click', () => {
+    currentUser.pinVerified = true;
+    localStorage.setItem('messager-user', JSON.stringify(currentUser));
+    showMainInterface();
+  });
+  
+  // User Directory button (admin only)
+  document.getElementById('user-directory-btn')?.addEventListener('click', () => {
+    loadUserDirectory();
+    showStep('user-directory-panel');
+  });
+  
+  // Back to admin from user directory
+  document.getElementById('back-to-admin-btn')?.addEventListener('click', () => {
+    showMainInterface();
+  });
+  
+  // Logout from user directory
+  document.getElementById('logout-btn-directory')?.addEventListener('click', () => {
+    logout();
+  });
+  
+  // Success page buttons
+  document.getElementById('goto-session-btn')?.addEventListener('click', () => {
+    const sessionId = document.getElementById('success-session-id').textContent;
+    if (sessionId) {
+      window.location.hash = `#session/${sessionId}`;
+      loadSession(sessionId);
+    }
+  });
+  
+  document.getElementById('back-to-dashboard-btn')?.addEventListener('click', () => {
+    showMainInterface();
   });
   
   // View all sessions button - returns to panel from waiting room

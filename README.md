@@ -6,14 +6,17 @@ A minimalist, privacy-focused messaging app where two people exchange messages t
 
 ## 🚀 Quick Start
 
+### Local Development
+
 ```bash
 npm install
 npm start
 ```
 
-Open `http://localhost:3000`
+Visit `http://localhost:3000`
 
-**First-time setup?** See [START_GUIDE.md](START_GUIDE.md)
+### First Time?
+See [START_GUIDE.md](START_GUIDE.md) for detailed setup instructions.
 
 ---
 
@@ -23,9 +26,29 @@ Open `http://localhost:3000`
 2. **Admin (Shao Ziyue):** Create sessions with friends
 3. **Friends:** Join existing session or create new one
 4. **Leave a message** (text only)
-5. **Wait for unlock** - Messages appear only when both people submit
+5. **Wait for unlock** - Messages reveal when both people submit
 
-See complete flow: [FLOW_CHART_ENGLISH.md](FLOW_CHART_ENGLISH.md)
+**Mutual unlock is the core:** Neither person can see messages until both contribute.
+
+---
+
+## 🔑 Features
+
+- ✅ Name-based sessions (no login required)
+- ✅ Mutual unlock mechanism
+- ✅ Text messages only (simplified MVP)
+- ✅ Real-time status updates (5s polling)
+- ✅ Clean, single-page interface
+- ✅ Privacy-focused (no tracking)
+
+---
+
+## 🛠️ Tech Stack
+
+- **Frontend:** Vanilla JS, CSS
+- **Backend:** Node.js + Express
+- **Database:** SQLite3
+- **Deployment:** Render/Railway ready
 
 ---
 
@@ -34,63 +57,35 @@ See complete flow: [FLOW_CHART_ENGLISH.md](FLOW_CHART_ENGLISH.md)
 ```
 Messager/
 ├── public/
-│   ├── index.html      # Single-page app UI
-│   ├── style.css       # Minimalist purple theme
-│   └── script.js       # Client-side logic
-├── server.js           # Express + SQLite backend
-├── messager.db         # Session database (auto-created)
-└── docs/               # Historical documentation
+│   ├── index.html      # Single-page UI
+│   ├── style.css       # Purple gradient theme
+│   └── script.js       # Client logic
+├── server.js           # Express backend + SQLite
+├── messager.db         # Auto-created database
+├── uploads/            # (reserved for future use)
+└── docs/               # Documentation & guides
 ```
 
 ---
 
-## 🔑 Key Features
+## 🚀 Deployment
 
-- ✅ **Name-based sessions** (no login required)
-- ✅ **Mutual unlock** (both must send to view)
-- ✅ **Text messages only** (simplified MVP)
-- ✅ **Real-time status** (5s polling)
-- ✅ **Clean navigation** (Back buttons + Logout)
-- ✅ **Single Page App** (no page reloads)
+Ready to deploy on cloud platforms:
 
----
+1. **Render** (Recommended - Free tier)
+2. **Railway** (Free credit)
+3. **Fly.io** (Free tier available)
 
-## 🐛 Debugging
-
-**Having issues?** Check [DEBUG_GUIDE.md](DEBUG_GUIDE.md)
-
-**Quick tips:**
-- Hard refresh: `Cmd+Shift+R` (Mac) or `Ctrl+Shift+R` (Windows)
-- Check console: `F12` → Console tab → Look for `[DEBUG]` logs
-- Reset everything: Click **Logout** button (top-right)
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for step-by-step guide.
 
 ---
 
 ## 📚 Documentation
 
-### Essential
-- 📊 [FLOW_CHART_ENGLISH.md](FLOW_CHART_ENGLISH.md) - System architecture
-- 🚀 [START_GUIDE.md](START_GUIDE.md) - Setup instructions
-- 🐛 [DEBUG_GUIDE.md](DEBUG_GUIDE.md) - Troubleshooting workflow
+- 🚀 [START_GUIDE.md](START_GUIDE.md) - Setup & first run
+- 🐛 [DEBUG_GUIDE.md](DEBUG_GUIDE.md) - Troubleshooting
 - 🤝 [HOW_TO_WORK_WITH_ME.md](HOW_TO_WORK_WITH_ME.md) - Collaboration guide
-
-### Reference
-- 🌏 [RESTORE_CHINESE_GUIDE.md](RESTORE_CHINESE_GUIDE.md) - Add Chinese language back
-- 📈 [FEATURE_ASSESSMENT.md](FEATURE_ASSESSMENT.md) - Feature evaluation (中文)
-
-### Historical (in `/docs`)
-- Bug fix logs
-- Feature removal summaries
-- Optimization notes
-
----
-
-## 🛠️ Tech Stack
-
-- **Frontend:** Vanilla JS, CSS (no frameworks)
-- **Backend:** Node.js + Express
-- **Database:** SQLite3
-- **Deployment:** Ready for Heroku/Render (see deployment guide)
+- 📁 [docs/](docs/) - Detailed documentation
 
 ---
 
@@ -99,39 +94,28 @@ Messager/
 **Minimalist. Focused. Private.**
 
 - Purple gradient theme (#667eea)
-- Step-by-step flow (no overwhelming UI)
-- Clean typography (system fonts)
+- Step-by-step user flow
 - Mobile-responsive
-- No tracking, no analytics
+- No unnecessary features
+- Zero tracking
 
 ---
 
-## 🔄 Current Status
+## 🐛 Troubleshooting
 
-**Version:** MVP (English-only, text-only)
+**Issues?** Check [DEBUG_GUIDE.md](DEBUG_GUIDE.md)
 
-**Removed (for simplicity):**
-- ❌ Language selection (was: EN/CN)
-- ❌ File upload (was: text + files)
-
-**Can be restored:** See `RESTORE_CHINESE_GUIDE.md`
-
----
-
-## 🤔 Need Help?
-
-1. Check [DEBUG_GUIDE.md](DEBUG_GUIDE.md) for common issues
-2. Look at browser console logs (`F12`)
-3. Check server logs in terminal
-4. Read [HOW_TO_WORK_WITH_ME.md](HOW_TO_WORK_WITH_ME.md) for effective debugging
+**Quick fixes:**
+- Hard refresh: `Cmd+Shift+R` (Mac) / `Ctrl+Shift+R` (Windows)
+- Check console: Press `F12` → Console tab
+- Reset state: Click **Logout** (top-right)
 
 ---
 
 ## 📝 License
 
-Personal project - feel free to fork and modify!
+Personal project - free to fork and modify!
 
 ---
 
 **Made with ❤️ for simple, private communication**
-

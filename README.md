@@ -84,8 +84,7 @@ See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for step-by-step guide.
 
 - 🚀 [START_GUIDE.md](START_GUIDE.md) - Setup & first run
 - 🐛 [DEBUG_GUIDE.md](DEBUG_GUIDE.md) - Troubleshooting
-- 🤝 [HOW_TO_WORK_WITH_ME.md](HOW_TO_WORK_WITH_ME.md) - Collaboration guide
-- 📁 [docs/](docs/) - Detailed documentation
+- 📱 [SCREENS_REFERENCE.md](SCREENS_REFERENCE.md) - Complete screen reference
 
 ---
 

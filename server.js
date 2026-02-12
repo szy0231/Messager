@@ -6,7 +6,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid');
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
 
 // Ensure uploads directory exists
 const uploadsDir = path.join(__dirname, 'uploads');
@@ -63,9 +63,9 @@ db.serialize(() => {
     user_b_uploaded INTEGER DEFAULT 0
   )`);
   
-  // Insert Shao Ziyue with fixed PIN 0231 if not exists
+  // Insert Shao Ziyue with fixed PIN 0233 if not exists
   db.run(`INSERT OR IGNORE INTO users (family_name, given_name, pin) VALUES (?, ?, ?)`,
-    ['Shao', 'Ziyue', '0231'],
+    ['Shao', 'Ziyue', '0233'],
     (err) => {
       if (err) {
         console.error('[SERVER] Error creating Shao Ziyue user:', err);
@@ -79,6 +79,15 @@ db.serialize(() => {
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Disable caching for development
+app.use((req, res, next) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate, private');
+  res.set('Expires', '0');
+  res.set('Pragma', 'no-cache');
+  next();
+});
+
 app.use(express.static('public'));
 
 // Helper function to check if name matches Shao Ziyue (case-insensitive)
@@ -293,6 +302,41 @@ app.put('/api/reset-pin/:userId', (req, res) => {
   );
 });
 
+// Delete user (admin only)
+app.delete('/api/users/:userId', (req, res) => {
+  const { userId } = req.params;
+  const { adminFamilyName, adminGivenName } = req.body;
+  
+  // Verify admin
+  if (!isShaoZiyue(adminFamilyName, adminGivenName)) {
+    return res.status(403).json({ error: 'Admin access required' });
+  }
+  
+  // Don't allow deleting Shao Ziyue
+  db.get('SELECT family_name, given_name FROM users WHERE id = ?', [userId], (err, user) => {
+    if (err) {
+      return res.status(500).json({ error: 'Database error' });
+    }
+    
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    
+    if (isShaoZiyue(user.family_name, user.given_name)) {
+      return res.status(403).json({ error: 'Cannot delete admin user' });
+    }
+    
+    db.run('DELETE FROM users WHERE id = ?', [userId], function(delErr) {
+      if (delErr) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      console.log(`[SERVER] Admin deleted user ID: ${userId}`);
+      res.json({ success: true });
+    });
+  });
+});
+
 // Create a new session
 app.post('/api/sessions', (req, res) => {
   console.log('[SERVER] POST /api/sessions called with:', req.body);
@@ -339,8 +383,8 @@ app.post('/api/sessions', (req, res) => {
   // Check if session already exists
   db.get(
     `SELECT id FROM sessions 
-     WHERE user_a_family_name = ? AND user_a_given_name = ?
-     AND user_b_family_name = ? AND user_b_given_name = ?`,
+     WHERE LOWER(user_a_family_name) = LOWER(?) AND LOWER(user_a_given_name) = LOWER(?)
+     AND LOWER(user_b_family_name) = LOWER(?) AND LOWER(user_b_given_name) = LOWER(?)`,
     [userAFamily, userAGiven, userBFamily, userBGiven],
     (err, existingRow) => {
       if (err) {
@@ -538,19 +582,10 @@ app.get('/api/files/:filename', (req, res) => {
 
 // Find or create session with a friend (for Shao Ziyue)
 app.post('/api/find-session', (req, res) => {
-  // #region agent log
-  const fs = require('fs');
-  const logEntry = JSON.stringify({location:'server.js:331',message:'POST /api/find-session called',data:req.body,timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'}) + '\n';
-  try { fs.appendFileSync('/Users/shuizhuyu/Desktop/Project/Messager/.cursor/debug.log', logEntry); } catch(e) {}
-  // #endregion
   console.log('[SERVER] POST /api/find-session called with:', req.body);
   const { friendFamilyName, friendGivenName } = req.body;
   
   if (!friendFamilyName || !friendGivenName) {
-    // #region agent log
-    const logEntry2 = JSON.stringify({location:'server.js:185',message:'Validation failed: missing friend name',data:{friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'}) + '\n';
-    fs.appendFileSync('/Users/shuizhuyu/Desktop/Project/Messager/.cursor/debug.log', logEntry2);
-    // #endregion
     return res.status(400).json({ error: 'Friend family name and given name are required' });
   }
   
@@ -560,45 +595,28 @@ app.post('/api/find-session', (req, res) => {
   // Find existing session
   db.get(
     `SELECT id FROM sessions 
-     WHERE user_a_family_name = ? AND user_a_given_name = ?
-     AND user_b_family_name = ? AND user_b_given_name = ?`,
+     WHERE LOWER(user_a_family_name) = LOWER(?) AND LOWER(user_a_given_name) = LOWER(?)
+     AND LOWER(user_b_family_name) = LOWER(?) AND LOWER(user_b_given_name) = LOWER(?)`,
     [shaoFamily, shaoGiven, friendFamilyName, friendGivenName],
-      (err, row) => {
-        // #region agent log
-        const logEntry3 = JSON.stringify({location:'server.js:356',message:'Database query result',data:{err:err?.message,rowFound:!!row,rowId:row?.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'}) + '\n';
-        try { fs.appendFileSync('/Users/shuizhuyu/Desktop/Project/Messager/.cursor/debug.log', logEntry3); } catch(e) {}
-        // #endregion
-        console.log('[SERVER] Database query result:', { err: err?.message, rowFound: !!row, rowId: row?.id });
-        if (err) {
-          console.error('[SERVER] Database query error:', err);
-          return res.status(500).json({ error: 'Database error: ' + err.message });
-        }
+    (err, row) => {
+      console.log('[SERVER] Database query result:', { err: err?.message, rowFound: !!row, rowId: row?.id });
+      if (err) {
+        console.error('[SERVER] Database query error:', err);
+        return res.status(500).json({ error: 'Database error: ' + err.message });
+      }
       
       if (row) {
-        // #region agent log
-        const logEntry4 = JSON.stringify({location:'server.js:365',message:'Session exists, returning existing session',data:{sessionId:row.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'}) + '\n';
-        try { fs.appendFileSync('/Users/shuizhuyu/Desktop/Project/Messager/.cursor/debug.log', logEntry4); } catch(e) {}
-        // #endregion
         console.log('[SERVER] Session exists, returning:', row.id);
-        // Session exists
         return res.json({ sessionId: row.id, link: `${req.protocol}://${req.get('host')}/session/${row.id}` });
       }
       
       // Create new session
       const sessionId = uuidv4();
       console.log('[SERVER] Creating new session:', { sessionId, friendFamilyName, friendGivenName });
-      // #region agent log
-      const logEntry5 = JSON.stringify({location:'server.js:377',message:'Creating new session',data:{sessionId,friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'}) + '\n';
-      try { fs.appendFileSync('/Users/shuizhuyu/Desktop/Project/Messager/.cursor/debug.log', logEntry5); } catch(e) {}
-      // #endregion
       db.run(
         'INSERT INTO sessions (id, user_a_family_name, user_a_given_name, user_b_family_name, user_b_given_name) VALUES (?, ?, ?, ?, ?)',
         [sessionId, shaoFamily, shaoGiven, friendFamilyName, friendGivenName],
         function(insertErr) {
-          // #region agent log
-          const logEntry6 = JSON.stringify({location:'server.js:386',message:'INSERT result',data:{err:insertErr?.message,changes:this.changes,lastID:this.lastID},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'}) + '\n';
-          try { fs.appendFileSync('/Users/shuizhuyu/Desktop/Project/Messager/.cursor/debug.log', logEntry6); } catch(e) {}
-          // #endregion
           if (insertErr) {
             console.error('[SERVER] Database error:', insertErr);
             return res.status(500).json({ error: 'Failed to create session: ' + insertErr.message });
@@ -640,6 +658,51 @@ app.get('/api/admin/sessions', (req, res) => {
   );
 });
 
+// Get sessions for a specific friend (user view)
+app.get('/api/my-sessions', (req, res) => {
+  const { familyName, givenName } = req.query;
+  
+  if (!familyName || !givenName) {
+    return res.status(400).json({ error: 'Family name and given name are required' });
+  }
+  
+  db.all(
+    `SELECT id, created_at,
+     user_a_family_name, user_a_given_name,
+     user_b_family_name, user_b_given_name,
+     user_a_uploaded, user_b_uploaded,
+     (user_a_uploaded = 1 AND user_b_uploaded = 1) as is_unlocked
+     FROM sessions 
+     WHERE (LOWER(user_a_family_name) = LOWER(?) AND LOWER(user_a_given_name) = LOWER(?))
+        OR (LOWER(user_b_family_name) = LOWER(?) AND LOWER(user_b_given_name) = LOWER(?))
+     ORDER BY created_at DESC`,
+    [familyName, givenName, familyName, givenName],
+    (err, rows) => {
+      if (err) {
+        return res.status(500).json({ error: 'Database error' });
+      }
+      
+      const sessions = (rows || []).map(row => {
+        // Determine if current user is A or B
+        const isUserA = row.user_a_family_name.toLowerCase() === familyName.toLowerCase() &&
+                       row.user_a_given_name.toLowerCase() === givenName.toLowerCase();
+        
+        return {
+          id: row.id,
+          created_at: row.created_at,
+          partnerFamilyName: isUserA ? row.user_b_family_name : row.user_a_family_name,
+          partnerGivenName: isUserA ? row.user_b_given_name : row.user_a_given_name,
+          myUploaded: isUserA ? (row.user_a_uploaded === 1) : (row.user_b_uploaded === 1),
+          partnerUploaded: isUserA ? (row.user_b_uploaded === 1) : (row.user_a_uploaded === 1),
+          isUnlocked: row.is_unlocked === 1
+        };
+      });
+      
+      res.json(sessions);
+    }
+  );
+});
+
 // 404 handler for API routes
 app.use('/api', (req, res) => {
   res.status(404).json({ error: 'API endpoint not found' });
@@ -667,9 +730,9 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
+// Start HTTP server
 app.listen(PORT, () => {
-  console.log('Server running at http://localhost:3000');
+  console.log(`Server running at http://localhost:${PORT}`);
 });
 
 // Graceful shutdown

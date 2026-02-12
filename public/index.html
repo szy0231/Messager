@@ -3,36 +3,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Messager - Shao Ziyue</title>
-  <link rel="stylesheet" href="/style.css">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <title>消息解锁 - 邵子越</title>
+  <link rel="stylesheet" href="/style.css?v=2">
 </head>
 <body>
-  <!-- Language Selection Modal -->
-  <div id="language-modal" class="language-modal">
-    <div class="language-modal-content">
-      <h2>Pick the language plz / 请选择语言</h2>
-      <div class="language-buttons">
-        <button id="lang-en" class="btn btn-primary lang-btn">English</button>
-        <button id="lang-zh" class="btn btn-primary lang-btn">中文</button>
-      </div>
-    </div>
-  </div>
-
-  <div class="app-container hidden" id="main-container">
+  <div class="app-container" id="main-container">
     
     <!-- Name Input Step -->
     <div id="name-step" class="step-container hidden">
       <div class="centered-card">
-        <h1 class="step-title" id="name-title">Enter Your Name</h1>
-        <form id="name-form" class="clean-form">
+        <h1 class="step-title" id="name-title">请大声告诉我你是谁！</h1>
+        <form id="name-form" class="clean-form" autocomplete="off">
           <div class="form-row">
-            <input type="text" id="family-name" placeholder="Family Name" required autofocus>
-            <input type="text" id="given-name" placeholder="Given Name" required>
+            <input type="text" id="family-name" placeholder="姓" required autofocus autocomplete="off">
+            <input type="text" id="given-name" placeholder="名" required autocomplete="off">
           </div>
-          <button type="submit" class="btn btn-primary btn-large" id="submit-name-btn">Continue</button>
+          <button type="submit" class="btn btn-primary btn-large" id="submit-name-btn">继续</button>
         </form>
         <p class="change-name-link">
-          <button id="change-name-btn" class="link-button hidden">Change Name</button>
+          <button id="change-name-btn" class="link-button hidden">更改姓名</button>
         </p>
       </div>
     </div>
@@ -40,30 +32,30 @@
     <!-- PIN Input Step (for existing users) -->
     <div id="pin-input-step" class="step-container hidden">
       <div class="centered-card">
-        <h1 class="step-title">🔐 Enter Your PIN</h1>
-        <p class="step-subtitle">Welcome back, <span id="pin-user-name"></span>!</p>
+        <h1 class="step-title">🔐 输入您的密码</h1>
+        <p class="step-subtitle">欢迎回来，<span id="pin-user-name"></span>！</p>
         <form id="pin-form" class="clean-form">
-          <input type="text" id="pin-input" placeholder="4-digit PIN" maxlength="4" pattern="\d{4}" required autofocus>
-          <button type="submit" class="btn btn-primary btn-large">Login</button>
+          <input type="text" id="pin-input" placeholder="4位数字密码" maxlength="4" pattern="\d{4}" required autofocus>
+          <button type="submit" class="btn btn-primary btn-large">登录</button>
         </form>
-        <p class="help-text">Forgot your PIN? Contact Shao Ziyue for help.</p>
-        <button id="back-to-name-btn" class="link-button">← Change Name</button>
+        <p class="help-text">忘记密码？联系传说中的邵子越寻求帮助。</p>
+        <button id="back-to-name-btn" class="link-button">← 更改姓名</button>
       </div>
     </div>
 
     <!-- PIN Display Step (for new users) -->
     <div id="pin-display-step" class="step-container hidden">
       <div class="centered-card pin-card-highlight">
-        <h1 class="step-title">🎉 Welcome!</h1>
-        <p class="step-subtitle">Your account has been created.</p>
+        <h1 class="step-title">🎉 欢迎！</h1>
+        <p class="step-subtitle">Oh亲爱的朋友，您的账户已创建。</p>
         <div class="pin-display-box">
-          <p class="pin-label">⚠️ YOUR PIN IS:</p>
+          <p class="pin-label">⚠️ 您的密码是：</p>
           <h2 class="pin-number" id="displayed-pin">0000</h2>
-          <p class="pin-warning">🚨 MEMORIZE THIS NOW! 🚨</p>
-          <p class="pin-help">You'll need this PIN every time you log in.<br>
-          If you forget it, only <strong>Shao Ziyue</strong> can help you recover it.</p>
+          <p class="pin-warning">记不住没关系！</p>
+          <p class="pin-help">每次登录都需要此密码。<br>
+          如果忘记，只有<strong>邵子越</strong>可以帮您找回。</p>
         </div>
-        <button id="pin-understood-btn" class="btn btn-primary btn-large">I've Saved My PIN</button>
+        <button id="pin-understood-btn" class="btn btn-primary btn-large">我已保存密码</button>
       </div>
     </div>
 
@@ -71,21 +63,21 @@
     <div id="admin-panel" class="step-container hidden">
       <div class="centered-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <h1 class="step-title" id="admin-title" style="margin: 0;">All Friends</h1>
+          <h1 class="step-title" id="admin-title" style="margin: 0;">所有朋友</h1>
           <div>
-            <button id="user-directory-btn" class="btn-secondary" style="margin-right: 8px;">🔑 Users</button>
-            <button id="logout-btn" class="btn-secondary">Logout</button>
+            <button id="user-directory-btn" class="btn-secondary" style="margin-right: 8px;">🔑 用户</button>
+            <button id="logout-btn" class="btn-secondary">登出</button>
           </div>
         </div>
         <div id="sessions-list" class="sessions-list"></div>
         <div class="create-session-form">
-          <h3 id="create-session-title">Create Session with Friend</h3>
+          <h3 id="create-session-title">与朋友创建会话</h3>
           <form id="create-session-form" class="clean-form">
             <div class="form-row">
-              <input type="text" id="friend-family-name" placeholder="Friend Family Name">
-              <input type="text" id="friend-given-name" placeholder="Friend Given Name">
+              <input type="text" id="friend-family-name" placeholder="朋友的姓">
+              <input type="text" id="friend-given-name" placeholder="朋友的名">
             </div>
-            <button type="submit" class="btn btn-primary btn-large" id="create-session-btn">Create</button>
+            <button type="submit" class="btn btn-primary btn-large" id="create-session-btn">创建</button>
           </form>
         </div>
       </div>
@@ -95,36 +87,32 @@
     <div id="user-directory-panel" class="step-container hidden">
       <div class="centered-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <h1 class="step-title" style="margin: 0;">🔑 User Directory</h1>
+          <h1 class="step-title" style="margin: 0;">🔑 用户目录</h1>
           <div>
-            <button id="back-to-admin-btn" class="btn-secondary" style="margin-right: 8px;">← Back</button>
-            <button id="logout-btn-directory" class="btn-secondary">Logout</button>
+            <button id="back-to-admin-btn" class="btn-secondary" style="margin-right: 8px;">← 返回</button>
+            <button id="logout-btn-directory" class="btn-secondary">登出</button>
           </div>
         </div>
         <div id="users-list" class="users-list"></div>
       </div>
     </div>
 
-    <!-- Friend: Join/Create Session Step -->
+    <!-- Friend: My Sessions Panel -->
     <div id="friend-session-step" class="step-container hidden">
       <div class="centered-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <h1 class="step-title" id="friend-session-title" style="margin: 0;">Join or Create Session</h1>
-          <button id="logout-btn-friend" class="btn-secondary">Logout</button>
+          <h1 class="step-title" id="friend-session-title" style="margin: 0;">来到这一步了</h1>
+          <button id="logout-btn-friend" class="btn-secondary">登出</button>
         </div>
-        <div class="session-actions">
-          <div class="action-group">
-            <h3 id="join-title">Join Session</h3>
-            <form id="join-form" class="clean-form">
-              <input type="text" id="session-id-input" placeholder="Session ID" required>
-              <button type="submit" class="btn btn-primary btn-large" id="join-session-btn">Join</button>
-            </form>
-          </div>
-          <div class="divider">OR</div>
-          <div class="action-group">
-            <h3 id="create-new-title">Create New Session</h3>
-            <button id="create-new-session-btn" class="btn btn-primary btn-large">Create Session</button>
-          </div>
+        
+        <!-- Sessions List -->
+        <div id="friend-sessions-list" class="sessions-list"></div>
+        
+        <!-- Create New Session Button -->
+        <div style="text-align: center; margin-top: 32px;">
+          <button id="create-new-session-btn" class="btn btn-primary btn-large">
+            ✨ 开始与邵子越的对话，嘿嘿
+          </button>
         </div>
       </div>
     </div>
@@ -133,15 +121,15 @@
     <div id="message-input-step" class="step-container hidden">
       <div class="centered-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <button id="back-to-panel-btn" class="btn-back">← Back</button>
-          <button id="logout-btn-message" class="btn-secondary">Logout</button>
+          <button id="back-to-panel-btn" class="btn-back">← 返回</button>
+          <button id="logout-btn-message" class="btn-secondary">登出</button>
         </div>
-        <h1 class="step-title" id="input-title">Leave a Message</h1>
-        <p class="step-subtitle">Just leave a message.</p>
+        <h1 class="step-title" id="input-title">请抓起笔，挥毫您的文采</h1>
+        <p class="step-subtitle">快点畅所欲言你</p>
         <form id="message-form" class="clean-form">
-          <textarea id="message-text" placeholder="Enter your message here..." rows="6" required></textarea>
+          <textarea id="message-text" placeholder="点击这里开写！" rows="6" required></textarea>
           <button type="submit" class="btn btn-primary btn-large" id="submit-message-btn">
-            <span class="btn-text">Submit</span>
+            <span class="btn-text">写完发送！</span>
             <span class="btn-loading hidden">⏳</span>
           </button>
         </form>
@@ -152,22 +140,22 @@
     <div id="loading-step" class="step-container hidden">
       <div class="centered-card loading-card">
         <div class="spinner"></div>
-        <p class="loading-text">Processing...</p>
+        <p class="loading-text">处理中...</p>
       </div>
     </div>
 
     <!-- Success Celebration (First Session) -->
     <div id="success-step" class="step-container hidden">
       <div class="centered-card success-card">
-        <h1 class="step-title">🎉 SUCCESS!</h1>
-        <p class="success-message">Your first session with <strong><span id="success-friend-name"></span></strong> has been created!</p>
+        <h1 class="step-title">哦耶！</h1>
+        <p class="success-message">与<strong><span id="success-friend-name"></span></strong>的会话已创建！</p>
         <div class="success-details">
-          <p><strong>📝 Session ID:</strong> <span id="success-session-id"></span></p>
-          <p class="success-note">Share this Session ID with your friend so they can join!</p>
+          <p><strong>📝 会话ID：</strong> <span id="success-session-id"></span></p>
+          <p class="success-note">分享此会话ID给您的朋友以便加入！</p>
         </div>
         <div class="success-actions">
-          <button id="goto-session-btn" class="btn btn-primary btn-large">Go to Session</button>
-          <button id="back-to-dashboard-btn" class="btn-secondary">Back to Dashboard</button>
+          <button id="goto-session-btn" class="btn btn-primary btn-large">进入会话</button>
+          <button id="back-to-dashboard-btn" class="btn-secondary">返回面板</button>
         </div>
       </div>
     </div>
@@ -176,10 +164,10 @@
     <div id="status-step" class="step-container hidden">
       <div class="centered-card status-card">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-          <button id="view-all-sessions-btn" class="btn-back">View All Sessions</button>
-          <button id="logout-btn-status" class="btn-secondary">Logout</button>
+          <button id="view-all-sessions-btn" class="btn-back">← 返回</button>
+          <button id="logout-btn-status" class="btn-secondary">登出</button>
         </div>
-        <h1 class="step-title">Waiting Room</h1>
+        <h1 class="step-title">等待室</h1>
         
         <div class="status-dashboard">
           <!-- My Status -->
@@ -189,8 +177,8 @@
               <div class="status-pulse"></div>
             </div>
             <div class="status-info">
-              <h3 id="my-status-title">Me</h3>
-              <p class="status-text" id="my-status-text">⏳ Waiting...</p>
+              <h3 id="my-status-title">我</h3>
+              <p class="status-text" id="my-status-text">⏳ 等待中...</p>
             </div>
           </div>
 
@@ -201,8 +189,8 @@
               <div class="status-pulse"></div>
             </div>
             <div class="status-info">
-              <h3 id="their-status-title">Friend</h3>
-              <p class="status-text" id="their-status-text">⏳ Waiting...</p>
+              <h3 id="their-status-title">朋友</h3>
+              <p class="status-text" id="their-status-text">⏳ 等待中...</p>
             </div>
           </div>
         </div>
@@ -211,13 +199,13 @@
         <div id="messages-display" class="messages-container blurred">
           <div id="message-display-content"></div>
           <div class="blur-overlay">
-            <p class="blur-text">Both messages are required to unlock</p>
+            <p class="blur-text">需要双方消息才能解锁</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <script src="/script.js"></script>
+  <script src="/script.js?v=2"></script>
 </body>
 </html>

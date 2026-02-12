@@ -1,9 +1,10 @@
 // Language and Translations
 // Set to true to always show language/name input (for testing)
+// Production: Set to false
 const FORCE_SHOW_INPUT = false;
 
-// TEMPORARY: English only (Chinese removed for MVP, will restore later)
-let currentLanguage = 'en';
+// Set to Chinese by default
+let currentLanguage = 'zh';
 
 // Current User
 let currentUser = {
@@ -32,9 +33,10 @@ const translations = {
     familyName: 'Family Name:',
     givenName: 'Given Name:',
     continue: 'Continue',
+    back: '← Back',
     adminTitle: '📋 All Friends',
     refresh: 'Refresh',
-    friendSessionTitle: 'Join or Create Session',
+    friendSessionTitle: 'My Sessions',
     joinTitle: 'Join Session',
     friendSessionDesc: 'Enter your session ID:',
     createNewTitle: 'Create New Session',
@@ -69,28 +71,29 @@ const translations = {
   zh: {
     title: '🔒 消息解锁 - 邵子越',
     subtitle: '个人消息交换系统',
-    nameTitle: '输入您的姓名',
+    nameTitle: '请大声告诉我你是谁！',
     familyName: '姓:',
     givenName: '名:',
     continue: '继续',
+    back: '← 返回',
     adminTitle: '📋 所有朋友',
     refresh: '刷新',
-    friendSessionTitle: '加入或创建会话',
+    friendSessionTitle: '来到这一步了',
     joinTitle: '加入会话',
     friendSessionDesc: '输入您的会话ID:',
     createNewTitle: '创建新会话',
     createNewDesc: '创建新会话以向邵子越发消息',
     join: '加入',
     messagesTitle: '消息',
-    inputTitle: '您的消息',
+    inputTitle: '请抓起笔，挥毫您的文采',
     messageLabel: '消息（可选）:',
     fileLabel: '上传文件（可选）:',
-    send: '发送',
+    send: '写完发送！',
     waitingForReply: '等待回复...',
-    noSessions: '还没有会话。',
+    noSessions: '什么都没有嘞',
     sessionWith: '与会话',
-    unlocked: '✨ 已解锁',
-    waiting: '⏳ 等待中',
+    unlocked: '✨ 已解锁，嘿嘿',
+    waiting: '⏳ 等待，嘿嘿',
     view: '查看',
     messageSent: '消息发送成功！',
     waitingForOther: '等待对方回复...',
@@ -124,7 +127,7 @@ function isShaoZiyueName(familyName, givenName) {
 // Apply translations
 function applyTranslations() {
   if (!currentLanguage || !translations[currentLanguage]) {
-    currentLanguage = 'en';
+    currentLanguage = 'zh';
   }
   const t = translations[currentLanguage];
   
@@ -159,7 +162,7 @@ function applyTranslations() {
   
   if (joinTitleEl) joinTitleEl.textContent = t.joinTitle;
   if (createNewTitleEl) createNewTitleEl.textContent = t.createNewTitle;
-  if (createNewBtn) createNewBtn.textContent = t.create + ' Session / 会话';
+  if (createNewBtn) createNewBtn.textContent = t.create;
   
   // Change name button translation
   const changeNameBtn = document.getElementById('change-name-btn');
@@ -182,11 +185,10 @@ function applyTranslations() {
   }
 }
 
-// Language selection - TEMPORARILY DISABLED (English only for MVP)
-// TODO: Restore dual language support later
+// Language selection - Chinese by default
 function initLanguageSelection() {
-  console.log('[INIT] Language selection skipped - English only mode');
-  currentLanguage = 'en';
+  console.log('[INIT] Language selection skipped - Chinese mode');
+  currentLanguage = 'zh';
   
   const modal = document.getElementById('language-modal');
   const mainContainer = document.getElementById('main-container');
@@ -352,7 +354,7 @@ async function loadUserDirectory() {
     if (!usersList) return;
     
     if (!data.users || data.users.length === 0) {
-      usersList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">No users registered yet.</p>';
+      usersList.innerHTML = '<p style="text-align: center; color: #6b7280; padding: 40px;">暂无用户注册。</p>';
       return;
     }
     
@@ -371,6 +373,7 @@ async function loadUserDirectory() {
         ${user.family_name !== 'Shao' || user.given_name !== 'Ziyue' ? `
           <div class="user-actions">
             <button class="btn-small" onclick="resetUserPIN(${user.id}, '${user.family_name}', '${user.given_name}')">Reset PIN</button>
+            <button class="btn-small" style="color: #dc2626;" onclick="deleteUser(${user.id}, '${user.family_name}', '${user.given_name}')">Delete</button>
           </div>
         ` : ''}
       </div>
@@ -408,12 +411,44 @@ async function resetUserPIN(userId, familyName, givenName) {
     
     if (data.success) {
       alert(`PIN reset successfully! New PIN: ${newPin}`);
-      loadUserDirectory(); // Reload the list
+      loadUserDirectory();
     } else {
       alert(data.error || 'Error resetting PIN.');
     }
   } catch (error) {
     console.error('Error resetting PIN:', error);
+    alert('Error connecting to server.');
+  }
+}
+
+// Delete user (admin only)
+async function deleteUser(userId, familyName, givenName) {
+  if (!currentUser.isShaoZiyue) return;
+  
+  if (!confirm(`Delete ${familyName} ${givenName}? This cannot be undone.`)) {
+    return;
+  }
+  
+  try {
+    const response = await fetch(`/api/users/${userId}`, {
+      method: 'DELETE',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        adminFamilyName: currentUser.familyName,
+        adminGivenName: currentUser.givenName
+      })
+    });
+    
+    const data = await response.json();
+    
+    if (data.success) {
+      alert(`${familyName} ${givenName} deleted successfully!`);
+      loadUserDirectory();
+    } else {
+      alert(data.error || 'Error deleting user.');
+    }
+  } catch (error) {
+    console.error('Error deleting user:', error);
     alert('Error connecting to server.');
   }
 }
@@ -428,6 +463,12 @@ function showMainInterface() {
   
   // Hide all steps first
   hideAllSteps();
+  
+  // Fix friend panel title if it's showing old cached version
+  const friendTitle = document.getElementById('friend-session-title');
+  if (friendTitle && friendTitle.textContent !== '来到这一步了') {
+    friendTitle.textContent = '来到这一步了';
+  }
   
   // In dev mode (FORCE_SHOW_INPUT), ignore URL and always go to main panel
   if (FORCE_SHOW_INPUT) {
@@ -456,12 +497,24 @@ function showMainInterface() {
   } else {
     // Friend view (no session in URL)
     showStep('friend-session-step');
+    loadFriendSessions();
   }
 }
 
 // Utility functions for step navigation
 function hideAllSteps() {
-  const steps = ['name-step', 'admin-panel', 'friend-session-step', 'message-input-step', 'loading-step', 'status-step'];
+  const steps = [
+    'name-step',
+    'pin-input-step',
+    'pin-display-step',
+    'admin-panel',
+    'user-directory-panel',
+    'friend-session-step',
+    'message-input-step',
+    'loading-step',
+    'status-step',
+    'success-step'
+  ];
   steps.forEach(stepId => {
     const step = document.getElementById(stepId);
     if (step) step.classList.add('hidden');
@@ -484,12 +537,15 @@ function showStep(stepId) {
 
 // Change name function
 function changeName() {
+  stopPolling();
+  window.currentSessionId = null;
   // Clear localStorage
   localStorage.removeItem('messager-user');
   currentUser = {
     familyName: null,
     givenName: null,
-    isShaoZiyue: false
+    isShaoZiyue: false,
+    pinVerified: false
   };
   
   // Clear input fields
@@ -500,11 +556,23 @@ function changeName() {
   showStep('name-step');
 }
 
-// Logout function - clears everything and reloads
+function showNameInput() {
+  changeName();
+}
+
+// Logout function - clears everything and reloads at root
 function logout() {
-  console.log('[LOGOUT] Clearing all data and reloading...');
+  console.log('[LOGOUT] Clearing all data and returning to root...');
+  
+  // Stop any polling
+  stopPolling();
+  
+  // Clear all storage
   localStorage.clear();
-  location.reload();
+  sessionStorage.clear();
+  
+  // Go to root URL (clear session URL)
+  window.location.href = '/';
 }
 
 // Go back to panel function - returns to admin or friend panel
@@ -525,10 +593,11 @@ function goBackToPanel() {
   if (currentUser.isShaoZiyue) {
     console.log('[NAV] ✓ Returning to Admin Panel');
     showStep('admin-panel');
-    loadSessions(); // Refresh sessions list
+    loadAllSessions(); // Refresh sessions list
   } else {
     console.log('[NAV] ✓ Returning to Friend Panel');
     showStep('friend-session-step');
+    loadFriendSessions(); // Refresh sessions list
   }
 }
 
@@ -544,7 +613,7 @@ async function loadAllSessions() {
     const t = translations[currentLanguage];
     
     if (sessions.length === 0) {
-      sessionsList.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 32px;">${t.noSessions}</p>`;
+      sessionsList.innerHTML = `<p style="text-align: center; color: var(--text-light); padding: 32px;">什么都没有嘞</p>`;
       return;
     }
     
@@ -570,17 +639,91 @@ async function loadAllSessions() {
   }
 }
 
-// Join session form (for friends)
-document.getElementById('join-form')?.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const sessionId = document.getElementById('session-id-input').value.trim();
-  if (!sessionId) {
+// Load sessions for friend (non-admin user)
+async function loadFriendSessions() {
+  try {
+    const response = await fetch(`/api/my-sessions?familyName=${encodeURIComponent(currentUser.familyName)}&givenName=${encodeURIComponent(currentUser.givenName)}`);
+    const sessions = await response.json();
+    
+    const sessionsList = document.getElementById('friend-sessions-list');
+    const createBtn = document.getElementById('create-new-session-btn');
+    if (!sessionsList) return;
+    
     const t = translations[currentLanguage];
-    alert('Please enter a session ID');
-    return;
+    
+    // Show/hide create button based on whether user has sessions
+    if (createBtn) {
+      if (sessions.length === 0) {
+        createBtn.style.display = 'block'; // Show button for first-time users
+      } else {
+        createBtn.style.display = 'none'; // Hide button - already has session with Shao Ziyue
+      }
+    }
+    
+    if (sessions.length === 0) {
+      sessionsList.innerHTML = `
+        <div style="text-align: center; padding: 60px 20px; color: var(--text-light);">
+          <p style="font-size: 18px; margin-bottom: 12px;">👋 什么都没有嘞</p>
+          <p style="font-size: 14px;">点击下方按钮开始与邵子越的第一次对话</p>
+        </div>
+      `;
+      return;
+    }
+    
+    // Show existing conversation with friendly message
+    const session = sessions[0]; // Only one session with Shao Ziyue
+    const date = new Date(session.created_at).toLocaleString();
+    const partnerName = `${session.partnerFamilyName} ${session.partnerGivenName}`;
+    
+    let statusText, statusColor, statusEmoji;
+    if (session.isUnlocked) {
+      statusText = '已解锁';
+      statusColor = 'var(--success)';
+      statusEmoji = '✨';
+    } else if (session.myUploaded && !session.partnerUploaded) {
+      statusText = '等待回复';
+      statusColor = 'var(--warning)';
+      statusEmoji = '⏳';
+    } else if (!session.myUploaded && session.partnerUploaded) {
+      statusText = '需要回复！';
+      statusColor = 'var(--primary)';
+      statusEmoji = '💬';
+    } else {
+      statusText = '发送消息';
+      statusColor = 'var(--text-light)';
+      statusEmoji = '📝';
+    }
+    
+    sessionsList.innerHTML = `
+      <div style="text-align: center; padding: 40px 20px 20px 20px; color: var(--text-light);">
+        <p style="font-size: 18px; margin-bottom: 8px; color: var(--text);">
+          🎉 嘿，你已经创建过了！
+        </p>
+        <p style="font-size: 14px; margin-bottom: 32px;">
+          与 ${partnerName} 的对话
+        </p>
+      </div>
+      
+      <div class="session-item" style="margin-top: 0;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+          <div style="text-align: left;">
+            <strong style="font-size: 16px;">与 ${partnerName} 的会话</strong><br>
+            <small style="color: var(--text-light);">${date}</small><br>
+            <strong style="color: ${statusColor}; display: flex; align-items: center; margin-top: 8px;">
+              <span style="font-size: 20px; margin-right: 8px;">${statusEmoji}</span>
+              ${statusText}
+            </strong>
+          </div>
+          <a href="/session/${session.id}" class="btn btn-primary" style="text-decoration: none; padding: 12px 24px;">打开</a>
+        </div>
+      </div>
+    `;
+  } catch (error) {
+    console.error('Error loading friend sessions:', error);
   }
-  window.location.href = `/session/${sessionId}`;
-});
+}
+
+// Removed: Join session form - no longer needed with new UX
 
 // Create new session (for friends)
 async function createNewSession() {
@@ -605,7 +748,7 @@ async function createNewSession() {
   if (createBtn) {
     createBtn.disabled = true;
     const t = translations[currentLanguage];
-    createBtn.textContent = currentLanguage === 'zh' ? '创建中...' : 'Creating...';
+    createBtn.textContent = '创建中...';
   }
   
   try {
@@ -640,40 +783,38 @@ async function createNewSession() {
     console.log('[DEBUG] Response data:', data);
     
     if (response.ok && data.sessionId) {
-      console.log('[DEBUG] Success, showing success page:', data.sessionId);
-      // Show success celebration page
-      document.getElementById('success-friend-name').textContent = 'Shao Ziyue';
-      document.getElementById('success-session-id').textContent = data.sessionId;
-      showStep('success-step');
+      console.log('[DEBUG] Success, going directly to session:', data.sessionId);
+      // Go directly to session (skip success page)
+      window.location.href = `/session/${data.sessionId}`;
       
       // Re-enable button
       if (createBtn) {
         const t = translations[currentLanguage];
         createBtn.disabled = false;
-        createBtn.textContent = t.create + ' Session / 会话';
+        createBtn.textContent = t.create;
       }
       return;
     } else {
-      const errorMsg = data.error || 'Unknown error occurred';
+      const errorMsg = data.error || '未知错误';
       console.error('[DEBUG] API error:', { status: response.status, error: errorMsg, data });
       const t = translations[currentLanguage];
-      alert(currentLanguage === 'zh' ? `错误: ${errorMsg}` : `Error: ${errorMsg}`);
+      alert(`错误: ${errorMsg}`);
       // Re-enable button
       if (createBtn) {
         const t = translations[currentLanguage];
         createBtn.disabled = false;
-        createBtn.textContent = t.create + ' Session / 会话';
+        createBtn.textContent = t.create;
       }
     }
   } catch (error) {
     console.error('[DEBUG] Exception in createNewSession:', error);
     const t = translations[currentLanguage];
-    alert(currentLanguage === 'zh' ? `创建会话时出错: ${error.message}` : `Error creating session: ${error.message}`);
+    alert(`创建会话时出错: ${error.message}`);
     // Re-enable button
     if (createBtn) {
       const t = translations[currentLanguage];
       createBtn.disabled = false;
-      createBtn.textContent = t.create + ' Session / 会话';
+      createBtn.textContent = t.create;
     }
   }
 }
@@ -744,11 +885,22 @@ function showStatusInterface(data) {
   showStep('status-step');
   updateStatusDashboard(data);
   
-  // If unlocked, show messages without blur
+  // If unlocked, show messages without blur and celebration
   if (data.isUnlocked) {
     displayMessages(data);
     const messagesDisplay = document.getElementById('messages-display');
     messagesDisplay.classList.remove('blurred');
+    
+    // Show unlock celebration message
+    const blurOverlay = messagesDisplay.querySelector('.blur-overlay');
+    if (blurOverlay) {
+      blurOverlay.innerHTML = '<p class="blur-text" style="color: var(--success); font-weight: bold;">🎊 双方消息已解锁！现在可以查看啦～</p>';
+      // Hide overlay after a moment
+      setTimeout(() => {
+        blurOverlay.style.opacity = '0';
+        setTimeout(() => blurOverlay.style.display = 'none', 500);
+      }, 2000);
+    }
   } else {
     // Show messages if available but keep blurred
     if (data.userAMessage || data.userBMessage) {
@@ -769,6 +921,32 @@ function updateStatusDashboard(data) {
   const t = translations[currentLanguage];
   const isUserA = data.isUserA;
   
+  // Get names
+  const myName = isUserA 
+    ? `${data.userAFamilyName} ${data.userAGivenName}`
+    : `${data.userBFamilyName} ${data.userBGivenName}`;
+  const friendName = isUserA
+    ? `${data.userBFamilyName} ${data.userBGivenName}`
+    : `${data.userAFamilyName} ${data.userAGivenName}`;
+  
+  // Update main title based on unlock status
+  const mainTitle = document.querySelector('#status-step .step-title');
+  if (mainTitle) {
+    if (data.isUnlocked) {
+      mainTitle.textContent = '🎉 解锁成功！';
+      mainTitle.style.color = 'var(--success)';
+    } else {
+      mainTitle.textContent = '等待室';
+      mainTitle.style.color = '';
+    }
+  }
+  
+  // Update titles
+  const myStatusTitle = document.getElementById('my-status-title');
+  const theirStatusTitle = document.getElementById('their-status-title');
+  if (myStatusTitle) myStatusTitle.textContent = '我';
+  if (theirStatusTitle) theirStatusTitle.textContent = friendName;
+  
   // My status
   const myStatus = document.getElementById('my-status');
   const myStatusText = document.getElementById('my-status-text');
@@ -782,12 +960,12 @@ function updateStatusDashboard(data) {
       myStatus.classList.add('complete');
       if (myCheckmark) myCheckmark.classList.remove('hidden');
       if (myPulse) myPulse.style.display = 'none';
-      myStatusText.textContent = currentLanguage === 'zh' ? '✅ 已上传 & 加密' : '✅ Uploaded & Encrypted';
+      myStatusText.textContent = '✅ 已上传 & 加密';
     } else {
       myStatus.classList.remove('complete');
       if (myCheckmark) myCheckmark.classList.add('hidden');
       if (myPulse) myPulse.style.display = 'block';
-      myStatusText.textContent = currentLanguage === 'zh' ? '⏳ 等待中...' : '⏳ Waiting...';
+      myStatusText.textContent = '⏳ 等待中...';
     }
   }
   
@@ -804,12 +982,12 @@ function updateStatusDashboard(data) {
       theirStatus.classList.add('complete');
       if (theirCheckmark) theirCheckmark.classList.remove('hidden');
       if (theirPulse) theirPulse.style.display = 'none';
-      theirStatusText.textContent = currentLanguage === 'zh' ? '✅ 已解锁' : '✅ Unlocked';
+      theirStatusText.textContent = '✅ 已解锁';
     } else {
       theirStatus.classList.remove('complete');
       if (theirCheckmark) theirCheckmark.classList.add('hidden');
       if (theirPulse) theirPulse.style.display = 'block';
-      theirStatusText.textContent = currentLanguage === 'zh' ? '⏳ 等待朋友...' : '⏳ Waiting for Friend';
+      theirStatusText.textContent = `⏳ 等待 ${friendName}...`;
     }
   }
 }
@@ -897,7 +1075,7 @@ document.getElementById('message-form')?.addEventListener('submit', async (e) =>
       if (btnText) btnText.classList.remove('hidden');
       if (btnLoading) btnLoading.classList.add('hidden');
       showStep('message-input-step');
-      alert('Error: ' + (data.error || 'Failed to send message'));
+      alert('错误: ' + (data.error || '发送消息失败'));
     }
   } catch (error) {
     console.error('Error sending message:', error);
@@ -912,9 +1090,6 @@ document.getElementById('message-form')?.addEventListener('submit', async (e) =>
 
 // Create session with friend (for Shao Ziyue)
 async function createSessionWithFriend() {
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:632',message:'createSessionWithFriend called',data:{},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
   console.log('[DEBUG] createSessionWithFriend called');
   const createBtn = document.getElementById('create-session-btn');
   
@@ -930,7 +1105,7 @@ async function createSessionWithFriend() {
   
   if (!friendFamilyNameInput || !friendGivenNameInput) {
     console.error('[DEBUG] Form inputs not found!');
-    alert(currentLanguage === 'zh' ? '错误: 找不到表单输入框' : 'Error: Form inputs not found');
+    alert('错误: 找不到表单输入框');
     return;
   }
   
@@ -938,14 +1113,7 @@ async function createSessionWithFriend() {
   const friendGivenName = friendGivenNameInput.value.trim();
   console.log('[DEBUG] Friend names:', { friendFamilyName, friendGivenName });
   
-  // #region agent log
-  fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:639',message:'Friend name values before validation',data:{friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-  // #endregion
-  
   if (!friendFamilyName || !friendGivenName) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:643',message:'Validation failed: missing friend name',data:{friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     alert(t.pleaseEnterName);
     return;
   }
@@ -953,13 +1121,10 @@ async function createSessionWithFriend() {
   // Disable button to prevent multiple clicks
   if (createBtn) {
     createBtn.disabled = true;
-    createBtn.textContent = currentLanguage === 'zh' ? '创建中...' : 'Creating...';
+    createBtn.textContent = '创建中...';
   }
   
   try {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:655',message:'Calling /api/find-session',data:{friendFamilyName,friendGivenName},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     const response = await fetch('/api/find-session', {
       method: 'POST',
       headers: {
@@ -971,32 +1136,20 @@ async function createSessionWithFriend() {
       })
     });
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:668',message:'Response received from /api/find-session',data:{status:response.status,ok:response.ok,contentType:response.headers.get('content-type')},timestamp:Date.now(),sessionId:'debug-session',runId:'run2',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
-    
     const text = await response.text();
     let data;
     try {
       data = JSON.parse(text);
     } catch (parseError) {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:680',message:'Failed to parse JSON response',data:{error:parseError.message,status:response.status,textPreview:text.substring(0,100)},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       console.error('[DEBUG] Failed to parse JSON:', text);
       throw new Error(`Server returned non-JSON response (${response.status}): ${text.substring(0, 100)}`);
     }
     
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:689',message:'Response data parsed',data,timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     console.log('[DEBUG] Response data:', { ok: response.ok, status: response.status, data });
     
     if (response.ok && data.sessionId) {
-      // Show success celebration page
-      document.getElementById('success-friend-name').textContent = `${friendFamilyName} ${friendGivenName}`;
-      document.getElementById('success-session-id').textContent = data.sessionId;
-      showStep('success-step');
+      // Go directly to session (skip success page)
+      window.location.href = `/session/${data.sessionId}`;
       
       // Clear form
       friendFamilyNameInput.value = '';
@@ -1009,12 +1162,9 @@ async function createSessionWithFriend() {
       }
       return;
     } else {
-      // #region agent log
-      fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:703',message:'API error response',data:{error:data.error,responseOk:response.ok,hasSessionId:!!data.sessionId,fullData:data},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
-      // #endregion
       console.error('[DEBUG] API error:', { status: response.status, ok: response.ok, data });
-      const errorMsg = data.error || (data.sessionId ? 'Session ID missing from response' : 'Unknown error occurred');
-      alert(currentLanguage === 'zh' ? `错误: ${errorMsg}` : `Error: ${errorMsg}`);
+      const errorMsg = data.error || (data.sessionId ? '响应中缺少会话ID' : '未知错误');
+      alert(`错误: ${errorMsg}`);
       // Re-enable button on error
       if (createBtn) {
         createBtn.disabled = false;
@@ -1022,9 +1172,6 @@ async function createSessionWithFriend() {
       }
     }
   } catch (error) {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/5424fc40-6396-473b-9056-270b42674677',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'script.js:710',message:'Exception in createSessionWithFriend',data:{error:error.message,stack:error.stack},timestamp:Date.now(),sessionId:'debug-session',runId:'run3',hypothesisId:'B'})}).catch(()=>{});
-    // #endregion
     console.error('[DEBUG] Exception in createSessionWithFriend:', error);
     alert(currentLanguage === 'zh' ? `创建会话时出错: ${error.message}` : `Error creating session: ${error.message}`);
     // Re-enable button on error

@@ -85,7 +85,7 @@ const translations = {
     createNewDesc: '创建新会话以向邵子越发消息',
     join: '加入',
     messagesTitle: '消息',
-    inputTitle: '请抓起笔，挥毫您的文采',
+    inputTitle: '到你下笔了',
     messageLabel: '消息（可选）:',
     fileLabel: '上传文件（可选）:',
     send: '写完发送！',
@@ -694,11 +694,9 @@ async function loadFriendSessions() {
       statusEmoji = '📝';
     }
     
-    sessionsList.innerHTML = `
+      sessionsList.innerHTML = `
       <div style="text-align: center; padding: 40px 20px 20px 20px; color: var(--text-light);">
-        <p style="font-size: 18px; margin-bottom: 8px; color: var(--text);">
-          🎉 嘿，你已经创建过了！
-        </p>
+        <p style="font-size: 18px; margin-bottom: 8px; color: var(--text);">留言簿生成</p>
         <p style="font-size: 14px; margin-bottom: 32px;">
           与 ${partnerName} 的对话
         </p>

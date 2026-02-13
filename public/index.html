@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=3">
+  <link rel="stylesheet" href="/style.css?v=6">
 </head>
 <body>
   <div class="app-container" id="main-container">
@@ -18,13 +18,24 @@
     <!-- Name Input Step -->
     <div id="name-step" class="step-container hidden">
       <div class="centered-card">
+        <div style="margin-bottom: 12px; opacity: 0.6;">
+          <span style="font-size: 48px;">👋</span>
+        </div>
+        <div style="text-align: left; margin-bottom: 28px; font-family: 'KaiTi', 'STKaiti', '楷体', serif; font-size: 14px; line-height: 1.6; color: var(--text);">
+          <p style="margin-bottom: 10px;">嗨，朋友：</p>
+          <p style="margin-bottom: 10px;">我一直觉得人与人的连接是世上最宝贵的事物。于是，这个随便捣鼓的小东西应运而生。</p>
+          <p style="margin-bottom: 10px;">这是一个交换夸赞的平台，旨在通过交换简单的赞美留言，升华春节间朋友圈的真善美。</p>
+          <p style="margin-bottom: 10px;">机制很简单：在一方上传文字后，直到另一方上传留言之前，这段文字无法被ta看见。只有在双方都留言后，互相的文字才会解锁。</p>
+          <p style="margin-bottom: 0;">让我们用几行字的温暖作酒杯，祝你我在下一年都会 做大做强！</p>
+        </div>
         <h1 class="step-title" id="name-title">请大声告诉我你是谁！</h1>
+        <p style="color: var(--text-light); font-size: 14px; margin-top: -8px; margin-bottom: 24px;">第一步 · 身份确认</p>
         <form id="name-form" class="clean-form" autocomplete="off">
           <div class="form-row">
             <input type="text" id="family-name" placeholder="姓" required autofocus autocomplete="off">
             <input type="text" id="given-name" placeholder="名" required autocomplete="off">
           </div>
-          <button type="submit" class="btn btn-primary btn-large" id="submit-name-btn">继续</button>
+          <button type="submit" class="btn btn-primary btn-large" id="submit-name-btn">继续 →</button>
         </form>
         <p class="change-name-link">
           <button id="change-name-btn" class="link-button hidden">更改姓名</button>
@@ -35,11 +46,15 @@
     <!-- PIN Input Step (for existing users) -->
     <div id="pin-input-step" class="step-container hidden">
       <div class="centered-card">
-        <h1 class="step-title">🔐 输入您的密码</h1>
+        <div style="width: 60px; height: 60px; margin: 0 auto 20px; background: linear-gradient(135deg, var(--primary-light), var(--primary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 28px;">
+          🔐
+        </div>
+        <h1 class="step-title">输入您的密码</h1>
         <p class="step-subtitle">欢迎回来，<span id="pin-user-name"></span>！</p>
+        <p style="color: var(--text-light); font-size: 13px; margin-top: -24px; margin-bottom: 24px;">第二步 · 安全验证</p>
         <form id="pin-form" class="clean-form">
-          <input type="text" id="pin-input" placeholder="4位数字密码" maxlength="4" pattern="\d{4}" required autofocus>
-          <button type="submit" class="btn btn-primary btn-large">登录</button>
+          <input type="text" id="pin-input" placeholder="••••" maxlength="4" pattern="\d{4}" required autofocus>
+          <button type="submit" class="btn btn-primary btn-large">登录 →</button>
         </form>
         <p class="help-text">忘记密码？联系传说中的邵子越寻求帮助。</p>
         <button id="back-to-name-btn" class="link-button">← 更改姓名</button>
@@ -49,8 +64,10 @@
     <!-- PIN Display Step (for new users) -->
     <div id="pin-display-step" class="step-container hidden">
       <div class="centered-card pin-card-highlight">
-        <h1 class="step-title">🎉 欢迎！</h1>
+        <div style="font-size: 56px; margin-bottom: 16px; animation: bounce 1s ease;">🎉</div>
+        <h1 class="step-title">欢迎！</h1>
         <p class="step-subtitle">Oh亲爱的朋友，您的账户已创建。</p>
+        <p style="color: var(--text-light); font-size: 13px; margin-top: -20px; margin-bottom: 32px;">第二步 · 密码生成</p>
         <div class="pin-display-box">
           <p class="pin-label">⚠️ 您的密码是：</p>
           <h2 class="pin-number" id="displayed-pin">0000</h2>
@@ -58,7 +75,7 @@
           <p class="pin-help">每次登录都需要此密码。<br>
           如果忘记，只有<strong>邵子越</strong>可以帮您找回。</p>
         </div>
-        <button id="pin-understood-btn" class="btn btn-primary btn-large">我已保存密码</button>
+        <button id="pin-understood-btn" class="btn btn-primary btn-large">我已保存密码 →</button>
       </div>
     </div>
 
@@ -123,16 +140,20 @@
     <!-- Message Input Interface (Page A) -->
     <div id="message-input-step" class="step-container hidden">
       <div class="centered-card">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 32px;">
           <button id="back-to-panel-btn" class="btn-back">← 返回</button>
           <button id="logout-btn-message" class="btn-secondary">登出</button>
         </div>
-        <h1 class="step-title" id="input-title">到你下笔了</h1>
+        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; margin-bottom: 16px;">
+          <span style="font-size: 36px;">✍️</span>
+          <h1 class="step-title" id="input-title" style="margin: 0;">到你下笔了</h1>
+        </div>
         <p class="step-subtitle">好话限定😤</p>
+        <div style="height: 2px; background: linear-gradient(90deg, transparent, var(--accent-2), transparent); margin: 24px 0;"></div>
         <form id="message-form" class="clean-form">
           <textarea id="message-text" placeholder="点击这里开写！" rows="6" required></textarea>
           <button type="submit" class="btn btn-primary btn-large" id="submit-message-btn">
-            <span class="btn-text">写完发送！</span>
+            <span class="btn-text">写完发送！ →</span>
             <span class="btn-loading hidden">⏳</span>
           </button>
         </form>

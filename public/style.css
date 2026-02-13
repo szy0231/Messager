@@ -35,6 +35,7 @@ body {
   font-family: var(--font-body), serif;
   background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #c084fc 100%);
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -42,6 +43,8 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
 }
 
 /* ========================================
@@ -129,6 +132,23 @@ body {
   font-weight: 400;
 }
 
+.intro-text {
+  text-align: left;
+  margin-bottom: 28px;
+  font-family: 'KaiTi', 'STKaiti', '楷体', serif;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.intro-text p {
+  margin-bottom: 10px;
+}
+
+.intro-text p:last-child {
+  margin-bottom: 0;
+}
+
 /* ========================================
    LANGUAGE MODAL
    ======================================== */
@@ -202,6 +222,8 @@ textarea {
   transition: all 0.2s ease;
   background: var(--white);
 }
+
+/* 16px minimum prevents iOS zoom on input focus */
 
 input[type="text"]:focus,
 textarea:focus {
@@ -924,56 +946,143 @@ textarea {
 }
 
 /* ========================================
-   RESPONSIVE DESIGN
+   RESPONSIVE DESIGN - 竖屏 / iPhone 优先
    ======================================== */
 
 @media (max-width: 768px) {
+  body {
+    align-items: flex-start;
+    padding: max(8px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(24px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  .app-container {
+    max-width: 100%;
+    padding-top: 8px;
+  }
+
   .toast-notification {
-    top: 10px;
-    right: 10px;
-    left: 10px;
+    top: max(10px, env(safe-area-inset-top));
+    left: 12px;
+    right: 12px;
     max-width: none;
   }
-  
+
   .centered-card {
-    padding: 32px 24px;
+    padding: 28px 20px;
   }
 
   .step-title {
-    font-size: 24px;
+    font-size: 28px;
+  }
+
+  .step-subtitle {
+    font-size: 15px;
   }
 
   .form-row {
     grid-template-columns: 1fr;
   }
 
+  input[type="text"],
+  textarea {
+    padding: 16px;
+    font-size: 16px;
+    min-height: 48px;
+  }
+
+  .btn,
+  .btn-large {
+    min-height: 48px;
+    padding: 14px 24px;
+    font-size: 17px;
+  }
+
+  .btn-secondary,
+  .btn-back,
+  .link-button {
+    min-height: 44px;
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+
   .status-dashboard {
     grid-template-columns: 1fr;
-    gap: 16px;
+    gap: 12px;
   }
 
   .language-modal-content {
-    padding: 32px 24px;
+    padding: 28px 20px;
   }
 }
 
+/* iPhone 及小屏竖屏 */
 @media (max-width: 480px) {
   body {
-    padding: 12px;
+    padding: max(6px, env(safe-area-inset-top)) max(10px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(10px, env(safe-area-inset-left));
   }
 
   .centered-card {
-    padding: 24px 20px;
-    border-radius: 12px;
+    padding: 20px 16px;
+    border-radius: 16px;
   }
 
   .step-title {
-    font-size: 20px;
+    font-size: 24px;
+    letter-spacing: 0.5px;
+  }
+
+  .step-subtitle {
+    font-size: 14px;
   }
 
   .btn-large {
-    padding: 14px 32px;
-    font-size: 16px;
+    padding: 16px 20px;
+    font-size: 17px;
+  }
+
+  /* S01 intro 楷体段落 */
+  .intro-text {
+    font-size: 13px !important;
+    line-height: 1.55 !important;
+    margin-bottom: 20px !important;
+  }
+
+  .intro-text p {
+    margin-bottom: 8px !important;
+  }
+
+  /* PIN 输入 */
+  #pin-input-step #pin-input {
+    font-size: 24px;
+    letter-spacing: 12px;
+    padding: 18px;
+    min-height: 56px;
+  }
+
+  .pin-number {
+    font-size: 52px !important;
+    letter-spacing: 4px !important;
+  }
+
+  .pin-display-box {
+    padding: 24px 16px;
+  }
+
+  /* 消息输入 */
+  #message-input-step textarea {
+    min-height: 140px;
+    padding: 16px;
+  }
+
+  /* 会话卡片 */
+  .session-item {
+    padding: 16px;
+  }
+
+  .message-card {
+    padding: 16px;
   }
 }
 

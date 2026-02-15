@@ -6,6 +6,9 @@ const FORCE_SHOW_INPUT = false;
 // Set to Chinese by default
 let currentLanguage = 'zh';
 
+// 邀请分享链接的基础 URL（部署时修改为实际域名）
+const INVITE_BASE_URL = 'http://43.135.1.13:3000';
+
 // Current User
 let currentUser = {
   familyName: null,
@@ -176,13 +179,6 @@ function applyTranslations() {
   
   const sessionInput = document.getElementById('session-id-input');
   if (sessionInput) sessionInput.placeholder = currentLanguage === 'zh' ? '会话ID' : 'Session ID';
-  
-  const messageTextarea = document.getElementById('message-text');
-  if (messageTextarea) {
-    messageTextarea.placeholder = currentLanguage === 'zh' 
-      ? '在这里输入您的消息...' 
-      : 'Enter your message here...';
-  }
 }
 
 // Language selection - Chinese by default
@@ -990,31 +986,67 @@ function updateStatusDashboard(data) {
   }
 }
 
-// Display messages (TEXT ONLY - simplified)
+// 从 HTML 的 message-block 读取引导词（与 index.html 保持一致）
+function getMessageBlockLabels() {
+  var labels = [];
+  for (var i = 1; i <= 4; i++) {
+    var block = document.querySelector('#message-form .message-block:nth-child(' + i + ') .message-block-label');
+    if (block && block.textContent) labels.push(block.textContent.trim());
+  }
+  return labels.length ? labels : [
+    '我们认识的契机是：',
+    '请说出一个对我的赞美，请勿吝啬：',
+    '欢迎再补充一个：',
+    '任何掏心或真诚的话语，欢迎留下：'
+  ];
+}
+
+function parseMessageToBlocks(text) {
+  if (!text) return [];
+  var BLOCK_LABELS = getMessageBlockLabels();
+  var re = new RegExp('(' + BLOCK_LABELS.map(function(l) { return l.replace(/[()[\]{}.*+?^$|\\]/g, '\\$&'); }).join('|') + ')', 'g');
+  var parts = text.split(re);
+  var blocks = [];
+  for (var i = 1; i < parts.length; i += 2) {
+    if (parts[i]) {
+      blocks.push({ q: parts[i], a: (parts[i + 1] || '').trim() });
+    }
+  }
+  if (blocks.length === 0) blocks.push({ q: '', a: text });
+  return blocks;
+}
+
+function renderMessageContent(text) {
+  var blocks = parseMessageToBlocks(text);
+  if (blocks.length === 0 || (blocks.length === 1 && !blocks[0].q)) {
+    return '<p class="message-content">' + (text || '').replace(/</g, '&lt;') + '</p>';
+  }
+  var html = '';
+  for (var i = 0; i < blocks.length; i++) {
+    var b = blocks[i];
+    html += '<div class="message-block-item">';
+    if (b.q) html += '<div class="message-block-q">' + b.q + '</div>';
+    html += '<div class="message-block-a">' + (b.a || '').replace(/</g, '&lt;') + '</div></div>';
+  }
+  return html;
+}
+
 function displayMessages(data) {
   const displayContent = document.getElementById('message-display-content');
   if (!displayContent) return;
   displayContent.innerHTML = '';
-  
-  // User A message
+
   if (data.userAMessage) {
     const userACard = document.createElement('div');
     userACard.className = 'message-card';
-    userACard.innerHTML = `
-      <h4>${data.userAFamilyName} ${data.userAGivenName}:</h4>
-      <p>${data.userAMessage}</p>
-    `;
+    userACard.innerHTML = '<h4>' + (data.userAFamilyName || '') + ' ' + (data.userAGivenName || '') + ':</h4>' + renderMessageContent(data.userAMessage);
     displayContent.appendChild(userACard);
   }
-  
-  // User B message
+
   if (data.userBMessage) {
     const userBCard = document.createElement('div');
     userBCard.className = 'message-card';
-    userBCard.innerHTML = `
-      <h4>${data.userBFamilyName} ${data.userBGivenName}:</h4>
-      <p>${data.userBMessage}</p>
-    `;
+    userBCard.innerHTML = '<h4>' + (data.userBFamilyName || '') + ' ' + (data.userBGivenName || '') + ':</h4>' + renderMessageContent(data.userBMessage);
     displayContent.appendChild(userBCard);
   }
 }
@@ -1022,14 +1054,21 @@ function displayMessages(data) {
 // Message form submission
 document.getElementById('message-form')?.addEventListener('submit', async (e) => {
   e.preventDefault();
-  
+
   const t = translations[currentLanguage];
-  const message = document.getElementById('message-text').value.trim();
-  
-  if (!message) {
-    alert(t.pleaseEnterMessage);
-    return;
+  const inputs = [
+    document.getElementById('message-block-1'),
+    document.getElementById('message-block-2'),
+    document.getElementById('message-block-3'),
+    document.getElementById('message-block-4')
+  ];
+  const labels = getMessageBlockLabels();
+  const parts = [];
+  for (var i = 0; i < inputs.length; i++) {
+    var v = (inputs[i] && inputs[i].value || '').trim();
+    if (v && labels[i]) parts.push(labels[i] + v);
   }
+  const message = parts.join('\n\n');
   
   if (!window.currentSessionId) {
     alert(t.sessionNotFound);
@@ -1063,9 +1102,20 @@ document.getElementById('message-form')?.addEventListener('submit', async (e) =>
     const data = await response.json();
     
     if (response.ok) {
-      // Small delay for smooth transition animation
-      setTimeout(() => {
-        loadSession(window.currentSessionId);
+      const sessionId = window.currentSessionId;
+      setTimeout(async () => {
+        await loadSession(sessionId);
+        if (currentUser.isShaoZiyue) {
+          try {
+            const r = await fetch(`/api/sessions/${sessionId}?familyName=${encodeURIComponent(currentUser.familyName)}&givenName=${encodeURIComponent(currentUser.givenName)}`);
+            if (r.ok) {
+              const d = await r.json();
+              const partnerFamily = d.isUserA ? d.userBFamilyName : d.userAFamilyName;
+              const partnerGiven = d.isUserA ? d.userBGivenName : d.userAGivenName;
+              if (partnerFamily && partnerGiven) showInviteModal(partnerFamily, partnerGiven, sessionId);
+            }
+          } catch (err) { console.error(err); }
+        }
       }, 1000);
     } else {
       // Reset button state
@@ -1085,6 +1135,45 @@ document.getElementById('message-form')?.addEventListener('submit', async (e) =>
     alert('Error sending message: ' + error.message);
   }
 });
+
+// 生成邀请分享文案（Admin 创建 session 后）
+function generateInviteText(friendFamilyName, friendGivenName, sessionId) {
+  const fullName = `${friendFamilyName} ${friendGivenName}`;
+  const link = `${INVITE_BASE_URL}/session/${sessionId}`;
+  return `嘿，姓：${friendFamilyName} 名：${friendGivenName} 的 ${fullName} 朋友
+
+我坚信人与人的连接是人生中美好的馈赠，为此在这个用vibe coding创建的小空间里，我存下了一封给你的留言，同时也需要你的几笔言语才可以解锁！欢迎点开，欢迎您来。
+
+${link}`;
+}
+
+// 显示邀请分享 Modal
+function showInviteModal(friendFamilyName, friendGivenName, sessionId) {
+  const modal = document.getElementById('invite-modal');
+  const display = document.getElementById('invite-text-display');
+  const copyBtn = document.getElementById('invite-copy-btn');
+  const enterBtn = document.getElementById('invite-enter-btn');
+  if (!modal || !display || !copyBtn || !enterBtn) return;
+
+  const text = generateInviteText(friendFamilyName, friendGivenName, sessionId);
+  display.textContent = text;
+  modal.classList.remove('hidden');
+
+  const doCopy = () => {
+    navigator.clipboard.writeText(text).then(() => {
+      showToast('✓ 已复制到剪贴板');
+    }).catch(() => {
+      showToast('请手动复制');
+    });
+  };
+
+  const doEnter = () => {
+    modal.classList.add('hidden');
+  };
+
+  copyBtn.onclick = doCopy;
+  enterBtn.onclick = doEnter;
+}
 
 // Create session with friend (for Shao Ziyue)
 async function createSessionWithFriend() {
@@ -1146,14 +1235,11 @@ async function createSessionWithFriend() {
     console.log('[DEBUG] Response data:', { ok: response.ok, status: response.status, data });
     
     if (response.ok && data.sessionId) {
-      // Go directly to session (skip success page)
       window.location.href = `/session/${data.sessionId}`;
-      
-      // Clear form
+
       friendFamilyNameInput.value = '';
       friendGivenNameInput.value = '';
-      
-      // Re-enable button
+
       if (createBtn) {
         createBtn.disabled = false;
         createBtn.textContent = t.create;

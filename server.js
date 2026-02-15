@@ -501,9 +501,7 @@ app.post('/api/sessions/:id/message', express.json(), (req, res) => {
     return res.status(400).json({ error: 'Family name and given name are required' });
   }
   
-  if (!message || !message.trim()) {
-    return res.status(400).json({ error: 'Message is required' });
-  }
+  const trimmedMessage = (message || '').toString().trim();
   
   // Get session to verify name
   db.get('SELECT * FROM sessions WHERE id = ?', [id], (err, row) => {
@@ -531,7 +529,7 @@ app.post('/api/sessions/:id/message', express.json(), (req, res) => {
     if (isUserA) {
       db.run(
         'UPDATE sessions SET user_a_message = ?, user_a_uploaded = 1 WHERE id = ?',
-        [message.trim(), id],
+        [trimmedMessage, id],
         function(updateErr) {
           if (updateErr) {
             return res.status(500).json({ error: 'Failed to save message' });
@@ -545,7 +543,7 @@ app.post('/api/sessions/:id/message', express.json(), (req, res) => {
     } else {
       db.run(
         'UPDATE sessions SET user_b_message = ?, user_b_uploaded = 1 WHERE id = ?',
-        [message.trim(), id],
+        [trimmedMessage, id],
         function(updateErr) {
           if (updateErr) {
             return res.status(500).json({ error: 'Failed to save message' });

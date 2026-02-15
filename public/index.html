@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
@@ -10,7 +12,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/style.css?v=7">
+  <link rel="stylesheet" href="/style.css?v=8">
 </head>
 <body>
   <div class="app-container" id="main-container">
@@ -22,11 +24,9 @@
           <span style="font-size: 48px;">👋</span>
         </div>
         <div class="intro-text">
-          <p style="margin-bottom: 10px;">嗨，朋友：</p>
-          <p style="margin-bottom: 10px;">我一直觉得人与人的连接是世上最宝贵的事物。于是，这个随便捣鼓的小东西应运而生。</p>
-          <p style="margin-bottom: 10px;">这是一个交换夸赞的平台，旨在通过交换简单的赞美留言，升华春节间朋友圈的真善美。</p>
+          <p style="margin-bottom: 10px;">这是一个"正大光明交换赞美以及真心话语"的平台，旨在用几行字的温暖，升华春节间朋友圈的真善美。</p>
           <p style="margin-bottom: 10px;">机制很简单：在一方上传文字后，直到另一方上传留言之前，这段文字无法被ta看见。只有在双方都留言后，互相的文字才会解锁。</p>
-          <p style="margin-bottom: 0;">让我们用几行字的温暖作酒杯，祝你我在下一年都会 做大做强！</p>
+          <p style="margin-bottom: 0;">让我们用几行字的温暖作酒杯，祝你我在下一年都会 做得更大，做得更强！</p>
         </div>
         <h1 class="step-title" id="name-title">请大声告诉我你是谁！</h1>
         <p style="color: var(--text-light); font-size: 14px; margin-top: -8px; margin-bottom: 24px;">第一步 · 身份确认</p>
@@ -150,8 +150,23 @@
         </div>
         <p class="step-subtitle">好话限定😤</p>
         <div style="height: 2px; background: linear-gradient(90deg, transparent, var(--accent-2), transparent); margin: 24px 0;"></div>
-        <form id="message-form" class="clean-form">
-          <textarea id="message-text" placeholder="点击这里开写！" rows="6" required></textarea>
+        <form id="message-form" class="clean-form message-blocks-form">
+          <div class="message-block">
+            <label class="message-block-label">我们认识的契机是：</label>
+            <textarea id="message-block-1" class="message-block-input" rows="3"></textarea>
+          </div>
+          <div class="message-block">
+            <label class="message-block-label">请说出一个对我的赞美，请勿吝啬：</label>
+            <textarea id="message-block-2" class="message-block-input" rows="3"></textarea>
+          </div>
+          <div class="message-block">
+            <label class="message-block-label">欢迎再补充一个：</label>
+            <textarea id="message-block-3" class="message-block-input" rows="2"></textarea>
+          </div>
+          <div class="message-block">
+            <label class="message-block-label">任何掏心或真诚的话语，欢迎留下：</label>
+            <textarea id="message-block-4" class="message-block-input" rows="3"></textarea>
+          </div>
           <button type="submit" class="btn btn-primary btn-large" id="submit-message-btn">
             <span class="btn-text">写完发送！ →</span>
             <span class="btn-loading hidden">⏳</span>
@@ -230,6 +245,18 @@
     </div>
   </div>
 
-  <script src="/script.js?v=2"></script>
+  <!-- 邀请分享文案 Modal (Admin 创建 session 后) -->
+  <div id="invite-modal" class="invite-modal hidden">
+    <div class="invite-modal-content">
+      <h3 class="invite-modal-title">📋 复制分享文案</h3>
+      <div id="invite-text-display" class="invite-text-display"></div>
+      <div class="invite-modal-actions">
+        <button id="invite-copy-btn" class="btn btn-primary">复制分享文案</button>
+        <button id="invite-enter-btn" class="btn-secondary">进入会话</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/script.js?v=3"></script>
 </body>
 </html>

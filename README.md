@@ -15,9 +15,6 @@ npm start
 
 Visit `http://localhost:3000`
 
-### First Time?
-See [START_GUIDE.md](START_GUIDE.md) for detailed setup instructions.
-
 ---
 
 ## 🎯 How It Works

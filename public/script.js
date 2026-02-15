@@ -1142,7 +1142,7 @@ function generateInviteText(friendFamilyName, friendGivenName, sessionId) {
   const link = `${INVITE_BASE_URL}/session/${sessionId}`;
   return `嘿，姓：${friendFamilyName} 名：${friendGivenName} 的 ${fullName} 朋友
 
-我坚信人与人的连接是人生中美好的馈赠，为此在这个用vibe coding创建的小空间里，我存下了一封给你的留言，同时也需要你的几笔言语才可以解锁！欢迎点开，欢迎您来。
+我坚信人与人的连接是人生中美好的馈赠，为此在这个用vibe coding创建的小空间里，我存下了一封需要你的留言共同解锁的美好祝福！欢迎您点开，并作为头部用户发言！
 
 ${link}`;
 }
